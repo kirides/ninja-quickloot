@@ -1,0 +1,21 @@
+[BEGINVDF]
+Comment=Rightclick to Quickloot!
+BaseDir=.\
+VDFName=.\Quickloot.vdf
+
+[FILES]
+; Resources (list the specific files from _work here)
+; _work\* -r
+
+; Script files
+Ninja\Quickloot\* -r
+
+[EXCLUDE]
+_work\Data\Scripts\* -r
+*.vm
+*.vdf
+*.bat
+
+[INCLUDE]
+
+[ENDVDF]
