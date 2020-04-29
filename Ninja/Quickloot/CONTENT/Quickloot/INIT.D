@@ -34,41 +34,35 @@ FUNC VOID Ninja_Quickloot_NPC_VobList_RemoveInvalid (var int slfInstance)
     slf = Hlp_GetNPC (slfInstance);
     
     var int i; i = 0;
-    var int loop;
 
-    MEM_InitLabels ();
-    loop = MEM_StackPos.position;
 
-    if (slf.vobList_numInArray > 0)
-    {
+    while (slf.vobList_numInArray > 0);
         var int vobPtr; vobPtr = MEM_ReadIntArray (slf.vobList_array, i);
         
         if (Hlp_Is_oCNpc (vobPtr))
         {
-            var C_NPC npc;
-            npc = _^ (vobPtr);
-
-            if (NPC_IsDead (npc) || Npc_IsPlayer(npc) || (slfInstance == vobPtr))
-            {
+            var C_NPC npc; npc = _^(vobPtr);
+            if (C_NpcIsDown(npc) 
+			|| NPC_IsDead (npc)
+			|| Npc_IsPlayer(npc)
+			|| (slfInstance == vobPtr)) {
                 //remove npc,player,self from vobList_array
                 Ninja_Quickloot_NPC_RemoveFromVobList (slfInstance, vobPtr);
 
                 //restart loop
                 i = 0;
-                MEM_StackPos.position = loop;
+                continue;
             };
         } else {
 			Ninja_Quickloot_NPC_RemoveFromVobList (slfInstance, vobPtr);
 			//restart loop
 			i = 0;
-			MEM_StackPos.position = loop;
+			continue;
 		};
         
         i += 1;
-        if (i < slf.vobList_numInArray)    {
-            MEM_StackPos.position = loop;
-        };
-    };
+		if (i >= slf.vobList_numInArray) { break; };
+	end;
 };
 
 /***
