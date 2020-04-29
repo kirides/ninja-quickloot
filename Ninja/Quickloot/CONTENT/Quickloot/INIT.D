@@ -174,7 +174,10 @@ func void Ninja_Quickloot_PerceiveAction(var int takerPtr, var int vobPtr, var i
 	};
 	while(i < oTaker.vobList_numInArray);
 		npcPtr = MEM_ReadIntArray(oTaker.vobList_array, i);
-		if (!npcPtr) { continue; };
+		if (!npcPtr) { 
+			i += 1;
+			continue;
+		};
 
 		cPerceiver = _^(npcPtr);
 
