@@ -341,5 +341,3 @@ func void Ninja_Quickloot_Init_Internal() {
 	FF_ApplyOnce(Ninja_Quickloot_Loot);
     MEM_Warn(ConcatStrings(NINJA_QUICKLOOT_VERSION, " was initialized successfully."));
 };
-
-func void Ninja_Quickloot_Dummy(){};
