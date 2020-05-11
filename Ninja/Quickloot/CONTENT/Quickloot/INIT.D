@@ -190,7 +190,9 @@ func void Ninja_Quickloot_PerceiveAction(var int takerPtr, var int vobPtr, var i
 func void Ninja_Quickloot_TakeOrStealItem(var int takerPtr, var int itemPtr) {
 		var C_Item targetItem; targetItem = _^(itemPtr);
 		if (!Hlp_IsValidItem(targetItem)) { return ; };
-
+		var oCItem item_; item_ =  _^(itemPtr);
+		if (!Hlp_IsValidItem(item_)) { return ; };
+		
 		var string itemName; itemName = targetItem.description;
 		if (Hlp_StrCmp(itemName, "")) {
 			itemName = targetItem.name;
@@ -201,8 +203,8 @@ func void Ninja_Quickloot_TakeOrStealItem(var int takerPtr, var int itemPtr) {
 
 		// Take the item without animation.
 		var C_Npc taker; taker = Hlp_GetNpc(takerPtr);
-
-		CreateInvItems(taker, itmID, 1);
+		var int itemAmount; itemAmount = item_.amount;
+		CreateInvItems(taker, itmID, itemAmount);
 		Wld_RemoveItem(targetItem);
 
 		// Remove the Item from focus.
@@ -212,10 +214,21 @@ func void Ninja_Quickloot_TakeOrStealItem(var int takerPtr, var int itemPtr) {
 			ConcatStrings(
 				"Erhalten: ", 
 				ConcatStrings(
-					"1x ",
+					ConcatStrings(IntToString(itemAmount) , "x "),
 					itemName
 				)
 			)
+		);
+};
+
+func int Ninja_Quickloot_NpcHasValidBodyState(var oCNPC npc) {
+	return (((npc.bitfield[4] & BS_STAND) > 0)
+		|| ((npc.bitfield[4] & BS_WALK) > 0)
+		|| ((npc.bitfield[4] & BS_SNEAK) > 0)
+		|| ((npc.bitfield[4] & BS_RUN) > 0)
+		|| ((npc.bitfield[4] & BS_SPRINT) > 0)
+		|| ((npc.bitfield[4] & BS_SWIM) > 0)
+		|| ((npc.bitfield[4] & BS_DIVE) > 0)
 		);
 };
 
@@ -226,11 +239,13 @@ func void Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
     var int i; i = 0;
     var string itemname;
 
+	const int _ITEM_KAT_ARMOR_EQUIPPED = (1 << 4) | ITEM_ACTIVE_LEGO;
+
     var int slotNr;    slotNr = 0;
     while (i < INV_CAT_MAX); 
         amount = NPC_GetInvItemBySlot(_owner, i, slotNr);
         itmID = Hlp_GetInstanceID(Item);
-        if (item.mainflag & ITEM_KAT_ARMOR)
+        if (item.mainflag & _ITEM_KAT_ARMOR_EQUIPPED)
         {
             slotNr += 1;
             continue;
@@ -244,7 +259,7 @@ func void Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
 			Ninja_Quickloot_PrintLoot(
 				ConcatStrings("Erhalten: ", ConcatStrings(
 					ConcatStrings(IntToString(amount), "x "),
-					item.name)));
+					itemName)));
 
             CreateInvItems (_receiver, itmID, amount);
             Npc_RemoveInvItems (_owner, itmID, amount);
@@ -257,16 +272,32 @@ func void Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
 func void Ninja_Quickloot_LootContainer(var int takerPtr, var int containerPtr) {
 		var oCMobContainer container; container = _^(containerPtr);
 
-		// Dummy NPC that will contain the Containers contents.
-		MEMINT_GetMemHelper();
-
 		var oCNpc her; her = Hlp_GetNpc(MEM_Helper);
-		// Set the dummy's inventory to the container contents.
-		her.inventory2_inventory_next = container.containList_next;
-
+		var int nodePtr; nodePtr = container.containList_next;
+		var zCListSort node;
 		var C_NPC taker; taker = Hlp_GetNpc(takerPtr);
-		var C_NPC containerNpc; containerNpc = _^(MEM_InstToPtr(her));
-		Ninja_Quickloot_LootNpc(containerNpc, taker);
+
+		while(nodePtr);
+			node = _^(nodePtr);
+			if (!node.data) {
+				nodePtr = node.next;
+				continue;
+			};
+			var C_Item cItem; var oCItem oItem;
+			cItem = _^(node.data); oItem = _^(node.data);
+
+			if (!Hlp_IsValidItem(cItem)) {
+				nodePtr = node.next;
+				continue;
+			};
+			CreateInvItems(taker, Hlp_GetInstanceId(cItem), oItem.amount);
+			Ninja_Quickloot_PrintLoot(
+				ConcatStrings("Erhalten: ", ConcatStrings(
+					ConcatStrings(IntToString(oItem.amount), "x "),
+					cItem.description)));
+
+			nodePtr = node.next;
+		end;
 
 		// Remove the container contents, by NULL-ing the first item pointer of the list.
 		container.containList_next = 0;
@@ -290,7 +321,8 @@ func void Ninja_Quickloot_Loot() {
 	// Check for RMB pressed
 	if (!MEM_KeyPressed(MOUSE_BUTTONRIGHT)) { return; };
 	var oCNpc her; her = Hlp_GetNpc(hero);
-	
+	if (!Ninja_Quickloot_NpcHasValidBodyState(her)) { return ; };
+
 	if (Hlp_Is_oCNpc(her.focus_vob)) {
 		var C_Npc targetNpc; targetNpc = _^(her.focus_vob);
 		var C_Npc cHero; cHero = Hlp_GetNpc(hero);
