@@ -9,13 +9,10 @@ VDFName=.\Quickloot.vdf
 
 ; Script files
 Ninja\Quickloot\* -r
+_Work\* -r
 
 [EXCLUDE]
-_work\Data\Scripts\* -r
-*.vm
-*.vdf
-*.bat
-
+*_DEV.*
 [INCLUDE]
 
 [ENDVDF]

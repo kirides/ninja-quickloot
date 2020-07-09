@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.1"; 
 
 /***
 	Credits: F A W K E S
@@ -117,19 +117,24 @@ FUNC INT Ninja_Quickloot_NPC_FreeLineOfSight (var int slfInstance, var int vobPt
 };
 
 // Used to calculate the "Top"-Offset for a Print
-var int Ninja_Quickloot_Print_Count;
+const int Ninja_Quickloot_Print_Count = 0;
 // Used to make Prints always start at the "Top"
-var int Ninja_Quickloot_Print_Timer;
+const int Ninja_Quickloot_Print_Timer = 0;
 const int Ninja_Quickloot_Print_Duration = 3000;
 var string Ninja_Quickloot_Print_Font;
 
+const int Ninja_Quickloot_Print_Count_Max = 15;
+const int Ninja_Quickloot_Print_Count_Limit_Current = 0;
+const int Ninja_Quickloot_Print_Count_Limit = 30;
+
 func void Ninja_Quickloot_PrintLoot(var string text) {
+	if (Ninja_Quickloot_Print_Count_Limit_Current > Ninja_Quickloot_Print_Count_Limit) { return; };
 	// If we, for some reason, have no font.
 	if (STR_Len(Ninja_Quickloot_Print_Font) == 0) { return; };
 	Print_GetScreenSize(); // Accomodate for possible resolution change.
 
 	var int txtHeight;
-	if (Ninja_Quickloot_Print_Count > 9) { Ninja_Quickloot_Print_Count = 0; };
+	if (Ninja_Quickloot_Print_Count > Ninja_Quickloot_Print_Count_Max) { Ninja_Quickloot_Print_Count = 0; };
 	if (!txtHeight) { txtHeight = Print_GetFontHeight(Ninja_Quickloot_Print_Font); };
 	
 	const int _COL_White = (255<<16) | (255<<8) | (255<<0) | (255<<24); //#FFFFFF
@@ -137,6 +142,7 @@ func void Ninja_Quickloot_PrintLoot(var string text) {
 	Print_ExtPxl(40, (Print_Screen[1] / 2) + (txtHeight * Ninja_Quickloot_Print_Count), text, Ninja_Quickloot_Print_Font, _COL_White, Ninja_Quickloot_Print_Duration);
 	Ninja_Quickloot_Print_Count += 1;
 	Ninja_Quickloot_Print_Timer = 0;
+	Ninja_Quickloot_Print_Count_Limit_Current +=1;
 };
 
 func void Ninja_Quickloot_CNpc_SetFocusVob(var C_Npc npc, var int vobPtr) {
@@ -149,7 +155,7 @@ func void Ninja_Quickloot_CNpc_SetFocusVob(var C_Npc npc, var int vobPtr) {
 
 func void Ninja_Quickloot_PerceiveAction(var int takerPtr, var int vobPtr, var int perc){
 	/*
-		Recognize Theft, based on F A W K E S' Ninja_Quickloot_NPC_CreateVobList.
+		Recognize Theft, based on F A W K E S' NPC_CreateVobList.
 	*/
 	var oCNpc oTaker; oTaker = Hlp_GetNpc(takerPtr);
 	Ninja_Quickloot_NPC_CreateVobList(takerPtr, 500); // TODO: Replace this with the proper range for theft.
@@ -189,14 +195,19 @@ func void Ninja_Quickloot_PerceiveAction(var int takerPtr, var int vobPtr, var i
 
 func void Ninja_Quickloot_TakeOrStealItem(var int takerPtr, var int itemPtr) {
 		var C_Item targetItem; targetItem = _^(itemPtr);
-		if (!Hlp_IsValidItem(targetItem)) { return ; };
+		if (!Hlp_IsValidItem(targetItem)) { return; };
 		var oCItem item_; item_ =  _^(itemPtr);
-		if (!Hlp_IsValidItem(item_)) { return ; };
+		if (!Hlp_IsValidItem(item_)) { return; };
 		
 		var string itemName; itemName = targetItem.description;
 		if (Hlp_StrCmp(itemName, "")) {
 			itemName = targetItem.name;
 		};
+
+		if (Hlp_StrCmp(itemName, "")) {
+			return;
+		};
+
 		var int itmID; itmID = Hlp_GetInstanceID(targetItem);
 
 		Ninja_Quickloot_PerceiveAction(takerPtr, itemPtr, PERC_ASSESSTHEFT);
@@ -210,15 +221,22 @@ func void Ninja_Quickloot_TakeOrStealItem(var int takerPtr, var int itemPtr) {
 		// Remove the Item from focus.
 		Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
 
-		Ninja_Quickloot_PrintLoot(
-			ConcatStrings(
-				"Erhalten: ", 
+		if (itemAmount > 1) {
+			Ninja_Quickloot_PrintLoot(
 				ConcatStrings(
-					ConcatStrings(IntToString(itemAmount) , "x "),
-					itemName
+					"Erhalten: ", 
+					ConcatStrings(
+						ConcatStrings(IntToString(itemAmount) , "x "),
+						itemName
+					)
 				)
-			)
-		);
+			);
+		} else {
+			Ninja_Quickloot_PrintLoot(
+				ConcatStrings("Erhalten: ", itemName)
+			);
+		};
+		
 };
 
 func int Ninja_Quickloot_NpcHasValidBodyState(var oCNPC npc) {
@@ -239,32 +257,47 @@ func void Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
     var int i; i = 0;
     var string itemname;
 
-	const int _ITEM_KAT_ARMOR_EQUIPPED = (1 << 4) | ITEM_ACTIVE_LEGO;
+	const int _ITEM_KAT_ARMOR = (1 << 4);
+	const int _ITEM_KAT_ARMOR_EQUIPPED = _ITEM_KAT_ARMOR | ITEM_ACTIVE_LEGO;
 
-    var int slotNr;    slotNr = 0;
-    while (i < INV_CAT_MAX); 
-        amount = NPC_GetInvItemBySlot(_owner, i, slotNr);
-        itmID = Hlp_GetInstanceID(Item);
-        if (item.mainflag & _ITEM_KAT_ARMOR_EQUIPPED)
-        {
-            slotNr += 1;
-            continue;
-        };
-        if (amount > 0)
-        {
-			itemName = item.description;
-			if (Hlp_StrCmp(itemName, "")) {
-				itemName = item.name;
+    var int slotNr;
+    while (i < INV_CAT_MAX);
+		slotNr = 0;
+		while (TRUE); // Loop all items, until category is empty/item is invalid
+			amount = NPC_GetInvItemBySlot(_owner, i, slotNr);
+			if (!Hlp_IsValidItem(Item)) { break; };
+
+			if (item.flags & _ITEM_KAT_ARMOR_EQUIPPED)
+			{
+				slotNr += 1;
+				continue;
 			};
-			Ninja_Quickloot_PrintLoot(
-				ConcatStrings("Erhalten: ", ConcatStrings(
-					ConcatStrings(IntToString(amount), "x "),
-					itemName)));
+			if (item.flags & ITEM_ACTIVE_LEGO)
+			{
+				slotNr += 1;
+				continue;
+			};
 
-            CreateInvItems (_receiver, itmID, amount);
-            Npc_RemoveInvItems (_owner, itmID, amount);
-            continue;
-        };
+			if (amount > 0)
+			{
+				itemName = item.description;
+				if (Hlp_StrCmp(itemName, "")) {
+					itemName = item.name;
+				};
+				if (amount > 1) {
+					Ninja_Quickloot_PrintLoot(
+						ConcatStrings("Erhalten: ", ConcatStrings(
+							ConcatStrings(IntToString(amount), "x "),
+							itemName)));
+				} else {
+					Ninja_Quickloot_PrintLoot(ConcatStrings("Erhalten: ", itemName));
+				};
+
+				itmID = Hlp_GetInstanceID(Item);
+				CreateInvItems (_receiver, itmID, amount);
+				Npc_RemoveInvItems (_owner, itmID, amount);
+			};
+		end;
         i += 1;
 	end;
 };
@@ -272,7 +305,6 @@ func void Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
 func void Ninja_Quickloot_LootContainer(var int takerPtr, var int containerPtr) {
 		var oCMobContainer container; container = _^(containerPtr);
 
-		var oCNpc her; her = Hlp_GetNpc(MEM_Helper);
 		var int nodePtr; nodePtr = container.containList_next;
 		var zCListSort node;
 		var C_NPC taker; taker = Hlp_GetNpc(takerPtr);
@@ -315,6 +347,7 @@ func void Ninja_Quickloot_Loot() {
 	Ninja_Quickloot_Print_Timer += MEM_Timer.frameTime;
 	// Reset the Print-Counter if not printed for X milliseconds
 	if (Ninja_Quickloot_Print_Timer > Ninja_Quickloot_Print_Duration) {
+		Ninja_Quickloot_Print_Count_Limit_Current = 0;
 		Ninja_Quickloot_Print_Count = 0;
 		Ninja_Quickloot_Print_Timer = 0;
 	};
@@ -328,7 +361,8 @@ func void Ninja_Quickloot_Loot() {
 		var C_Npc cHero; cHero = Hlp_GetNpc(hero);
 
 		// Keine lebenden NPC ausrauben! Ausser wenn sie am Boden liegen.
-		if (targetNpc.attribute[ATR_HITPOINTS] <= 0 || C_NpcIsDown(targetNpc)) { 
+		
+		if (targetNpc.attribute[ATR_HITPOINTS] <= 0 || Npc_IsInState(targetNpc, ZS_Unconscious)) { 
 			// Transfer Target inventory into Ours
 			Ninja_Quickloot_LootNpc(targetNpc, cHero);
 		 };
@@ -350,26 +384,26 @@ func void Ninja_Quickloot_Loot() {
 
 /// Init-function called by Ninja
 func void Ninja_Quickloot_Init_Internal() {
-	MEM_Warn(ConcatStrings(ConcatStrings("Initialize ", NINJA_QUICKLOOT_VERSION), "."));
+	MEM_Info(ConcatStrings(ConcatStrings("Initialize ", NINJA_QUICKLOOT_VERSION), "."));
 	LeGo_MergeFlags(LeGo_FrameFunctions);
 	
 	
-	Ninja_Quickloot_Print_Font = "";
-	var zCPar_Symbol symb;
-	if (MEM_FindParserSymbol("TEXT_FONT_DEFAULT") != -1) {
-		symb = _^(MEM_GetSymbol("TEXT_FONT_DEFAULT"));
-		Ninja_Quickloot_Print_Font = MEM_ReadString(symb.content);
-	} else {
-		if (MEM_FindParserSymbol("TEXT_FONT_10") != -1) {
-			symb = _^(MEM_GetSymbol("TEXT_FONT_10"));
-			Ninja_Quickloot_Print_Font = MEM_ReadString(symb.content);
-		} else {
-			if (MEM_FindParserSymbol("FONT_ScreenSmall") != -1) {
-				symb = _^(MEM_GetSymbol("FONT_ScreenSmall"));
-				Ninja_Quickloot_Print_Font = MEM_ReadString(symb.content);
-			};
-		};
-	};
+	Ninja_Quickloot_Print_Font = "Ninja_QuickLoot_Font_DE.tga";
+	// var zCPar_Symbol symb;
+	// if (MEM_FindParserSymbol("TEXT_FONT_DEFAULT") != -1) {
+	// 	symb = _^(MEM_GetSymbol("TEXT_FONT_DEFAULT"));
+	// 	Ninja_Quickloot_Print_Font = MEM_ReadString(symb.content);
+	// } else {
+	// 	if (MEM_FindParserSymbol("TEXT_FONT_10") != -1) {
+	// 		symb = _^(MEM_GetSymbol("TEXT_FONT_10"));
+	// 		Ninja_Quickloot_Print_Font = MEM_ReadString(symb.content);
+	// 	} else {
+	// 		if (MEM_FindParserSymbol("FONT_ScreenSmall") != -1) {
+	// 			symb = _^(MEM_GetSymbol("FONT_ScreenSmall"));
+	// 			Ninja_Quickloot_Print_Font = MEM_ReadString(symb.content);
+	// 		};
+	// 	};
+	// };
 	FF_ApplyOnce(Ninja_Quickloot_Loot);
-    MEM_Warn(ConcatStrings(NINJA_QUICKLOOT_VERSION, " was initialized successfully."));
+    MEM_Info(ConcatStrings(NINJA_QUICKLOOT_VERSION, " was initialized successfully."));
 };
