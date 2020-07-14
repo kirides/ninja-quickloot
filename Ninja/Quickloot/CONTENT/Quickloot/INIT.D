@@ -351,6 +351,10 @@ func void Ninja_Quickloot_Loot() {
 		Ninja_Quickloot_Print_Count = 0;
 		Ninja_Quickloot_Print_Timer = 0;
 	};
+
+	if (Npc_HasReadiedWeapon(hero) || Npc_HasReadiedRangedWeapon(hero) || Npc_HasReadiedMeleeWeapon(hero)) {
+		return;
+	};
 	// Check for RMB pressed
 	if (!MEM_KeyPressed(MOUSE_BUTTONRIGHT)) { return; };
 	var oCNpc her; her = Hlp_GetNpc(hero);
@@ -362,8 +366,9 @@ func void Ninja_Quickloot_Loot() {
 
 		// Keine lebenden NPC ausrauben! Ausser wenn sie am Boden liegen.
 		
-		if (targetNpc.attribute[ATR_HITPOINTS] <= 0 || Npc_IsInState(targetNpc, ZS_Unconscious)) { 
+		if (targetNpc.attribute[ATR_HITPOINTS] <= 0 || Npc_IsInState(targetNpc, ZS_Unconscious)) {
 			// Transfer Target inventory into Ours
+			B_ClearRuneInv(targetNpc);
 			Ninja_Quickloot_LootNpc(targetNpc, cHero);
 		 };
 	};
