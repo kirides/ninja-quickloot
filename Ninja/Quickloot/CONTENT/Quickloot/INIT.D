@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.1"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.2"; 
 
 /***
 	Credits: F A W K E S
@@ -193,6 +193,24 @@ func void Ninja_Quickloot_PerceiveAction(var int takerPtr, var int vobPtr, var i
 	end;
 };
 
+func void Ninja_Quickloot_PrintItem(var string name, var int amount) {
+	if (amount > 1) {
+		Ninja_Quickloot_PrintLoot(
+			ConcatStrings(
+				"Erhalten: ", 
+				ConcatStrings(
+					ConcatStrings(IntToString(amount) , "x "),
+					name
+				)
+			)
+		);
+	} else {
+		Ninja_Quickloot_PrintLoot(
+			ConcatStrings("Erhalten: ", name)
+		);
+	};
+};
+
 func void Ninja_Quickloot_TakeOrStealItem(var int takerPtr, var int itemPtr) {
 		var C_Item targetItem; targetItem = _^(itemPtr);
 		if (!Hlp_IsValidItem(targetItem)) { return; };
@@ -220,23 +238,7 @@ func void Ninja_Quickloot_TakeOrStealItem(var int takerPtr, var int itemPtr) {
 
 		// Remove the Item from focus.
 		Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
-
-		if (itemAmount > 1) {
-			Ninja_Quickloot_PrintLoot(
-				ConcatStrings(
-					"Erhalten: ", 
-					ConcatStrings(
-						ConcatStrings(IntToString(itemAmount) , "x "),
-						itemName
-					)
-				)
-			);
-		} else {
-			Ninja_Quickloot_PrintLoot(
-				ConcatStrings("Erhalten: ", itemName)
-			);
-		};
-		
+		Ninja_Quickloot_PrintItem(itemName, itemAmount);		
 };
 
 func int Ninja_Quickloot_NpcHasValidBodyState(var oCNPC npc) {
@@ -284,14 +286,7 @@ func void Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
 				if (Hlp_StrCmp(itemName, "")) {
 					itemName = item.name;
 				};
-				if (amount > 1) {
-					Ninja_Quickloot_PrintLoot(
-						ConcatStrings("Erhalten: ", ConcatStrings(
-							ConcatStrings(IntToString(amount), "x "),
-							itemName)));
-				} else {
-					Ninja_Quickloot_PrintLoot(ConcatStrings("Erhalten: ", itemName));
-				};
+				Ninja_Quickloot_PrintItem(itemName, amount);
 
 				itmID = Hlp_GetInstanceID(Item);
 				CreateInvItems (_receiver, itmID, amount);
@@ -322,11 +317,9 @@ func void Ninja_Quickloot_LootContainer(var int takerPtr, var int containerPtr) 
 				nodePtr = node.next;
 				continue;
 			};
+
 			CreateInvItems(taker, Hlp_GetInstanceId(cItem), oItem.amount);
-			Ninja_Quickloot_PrintLoot(
-				ConcatStrings("Erhalten: ", ConcatStrings(
-					ConcatStrings(IntToString(oItem.amount), "x "),
-					cItem.description)));
+			Ninja_Quickloot_PrintItem(cItem.description, oItem.amount);
 
 			nodePtr = node.next;
 		end;
@@ -355,6 +348,9 @@ func void Ninja_Quickloot_Loot() {
 	if (Npc_HasReadiedWeapon(hero) || Npc_HasReadiedRangedWeapon(hero) || Npc_HasReadiedMeleeWeapon(hero)) {
 		return;
 	};
+	if (Npc_IsInState(hero, ZS_Unconscious)) {
+		return;
+	}
 	// Check for RMB pressed
 	if (!MEM_KeyPressed(MOUSE_BUTTONRIGHT)) { return; };
 	var oCNpc her; her = Hlp_GetNpc(hero);
