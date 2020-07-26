@@ -329,6 +329,34 @@ func void Ninja_Quickloot_LootContainer(var int takerPtr, var int containerPtr) 
 
 		// Notify surrounding NPCs that we stole from a chest.
 		Ninja_Quickloot_PerceiveAction(takerPtr, containerPtr, PERC_ASSESSUSEMOB);
+		Ninja_Quickloot_CNpc_SetFocusVob(hero, 0);
+};
+
+func int Ninja_Quickloot_Npc__HasItem(var c_npc npc, var string instanceString) {
+	if (Hlp_StrCmp(instanceString, "")) {
+		return 0;
+	};
+	var oCItem itm;
+	var int slotNr;
+	var int i;
+	var int amount;
+	instanceString = STR_Upper(instanceString);
+    while (i < INV_CAT_MAX);
+		slotNr = 0;
+		while (TRUE); // Loop all items, until category is empty/item is invalid
+			amount = NPC_GetInvItemBySlot(npc, i, slotNr);
+			if (!Hlp_IsValidItem(Item)) { break; };
+			itm = _^(_@(Item));
+
+			if (Hlp_StrCmp(itm._zCObject_objectName, instanceString)) {
+				return TRUE;
+			};
+			slotNr += 1;
+		end;
+        i += 1;
+	end;
+
+	return FALSE;
 };
 
 func void Ninja_Quickloot_Loot() {
@@ -350,7 +378,7 @@ func void Ninja_Quickloot_Loot() {
 	};
 	if (Npc_IsInState(hero, ZS_Unconscious)) {
 		return;
-	}
+	};
 	// Check for RMB pressed
 	if (!MEM_KeyPressed(MOUSE_BUTTONRIGHT)) { return; };
 	var oCNpc her; her = Hlp_GetNpc(hero);
@@ -377,7 +405,21 @@ func void Ninja_Quickloot_Loot() {
 		if (Hlp_Is_oCMobLockable(her.focus_vob)) {
 			var oCMobLockable lockable; lockable = _^(her.focus_vob);
 			const int _oCMobLockable_bitfield_locked = ((1 <<  1) - 1) << 0;
-			if (lockable.bitfield & _oCMobLockable_bitfield_locked) { return; };
+			const int _oCMobLockable_bitfield_autoOpen = ((1 <<  1) - 1) << 1;
+
+			if (lockable.bitfield & _oCMobLockable_bitfield_locked) {
+				if (Ninja_Quickloot_Npc__HasItem(hero, lockable.keyInstance)) {
+					Snd_Play3D (hero, "PICKLOCK_UNLOCK");
+					lockable.bitfield = lockable.bitfield & ~_oCMobLockable_bitfield_locked;
+				} else if (lockable.bitfield & oCMobLockable_bitfield_autoOpen) { 
+					Snd_Play3D (hero, "PICKLOCK_UNLOCK");
+					lockable.bitfield = lockable.bitfield & ~_oCMobLockable_bitfield_locked;
+				} else {
+					// No key or requires lockpicking, clear focus & exit.
+					Ninja_Quickloot_CNpc_SetFocusVob(hero, 0);
+					return;
+				};
+			};
 		};
 		Ninja_Quickloot_LootContainer(hero, her.focus_vob);
 	};
@@ -390,21 +432,7 @@ func void Ninja_Quickloot_Init_Internal() {
 	
 	
 	Ninja_Quickloot_Print_Font = "Ninja_QuickLoot_Font_DE.tga";
-	// var zCPar_Symbol symb;
-	// if (MEM_FindParserSymbol("TEXT_FONT_DEFAULT") != -1) {
-	// 	symb = _^(MEM_GetSymbol("TEXT_FONT_DEFAULT"));
-	// 	Ninja_Quickloot_Print_Font = MEM_ReadString(symb.content);
-	// } else {
-	// 	if (MEM_FindParserSymbol("TEXT_FONT_10") != -1) {
-	// 		symb = _^(MEM_GetSymbol("TEXT_FONT_10"));
-	// 		Ninja_Quickloot_Print_Font = MEM_ReadString(symb.content);
-	// 	} else {
-	// 		if (MEM_FindParserSymbol("FONT_ScreenSmall") != -1) {
-	// 			symb = _^(MEM_GetSymbol("FONT_ScreenSmall"));
-	// 			Ninja_Quickloot_Print_Font = MEM_ReadString(symb.content);
-	// 		};
-	// 	};
-	// };
+
 	FF_ApplyOnce(Ninja_Quickloot_Loot);
     MEM_Info(ConcatStrings(NINJA_QUICKLOOT_VERSION, " was initialized successfully."));
 };
