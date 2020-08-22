@@ -1,131 +1,18 @@
 const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.6"; 
 
-/***
-	Credits: F A W K E S
-
-    Removes specific vobPtr from slf.vobList_array
-***/
-FUNC VOID _Ninja_Quickloot_NPC_RemoveFromVobList (var C_NPC slfInstance, var int vobPtr) {
-    //006B7080  .text     Debug data           ?RemoveFromVobList@oCNpc@@QAEXPAVzCVob@@@Z
-    const int oCNpc__RemoveFromVobList_G1 = 7041152;
-    //0x0075D9B0 public: void __thiscall oCNpc::RemoveFromVobList(class zCVob *)
-    const int oCNpc__RemoveFromVobList_G2 = 7723440;
-    
-    if (!vobPtr)    { return; };
-    
-    var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
-
-    const int call = 0;
-    if (CALL_Begin(call)) {
-        CALL_PtrParam (_@(vobPtr));
-        CALL__thiscall(_@(npcPtr), MEMINT_SwitchG1G2 (oCNpc__RemoveFromVobList_G1, oCNpc__RemoveFromVobList_G2));
-
-        call = CALL_End();
-    };
-};
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
-
+	const int oCNpc__CollectFocusVob_G1 = 6884720; // 0x690D70
+	const int oCNpc__CollectFocusVob_G2 = 7551504; // 0x733A10
     const int call = 0;
     if (CALL_Begin(call)) {
-        CALL_IntParam (_@(force));
-        CALL__thiscall(_@(npcPtr), 7551504 /* 00733A10: oCNpc::CollectFocusVob */);
-
-        call = CALL_End();
-    };
-};
-/// Removes player/self and dead/C_NpcIsDown Npc's from voblist
-/// ____
-/// Credits: F A W K E S
-FUNC VOID _Ninja_Quickloot_NPC_VobList_RemoveInvalid (var C_NPC slfInstance)
-{
-    var oCNPC slf; slf = MEM_CpyInst(slfInstance);
-    
-    var int i; i = 0;
-    while (slf.vobList_numInArray > 0);
-        var int vobPtr; vobPtr = MEM_ReadIntArray (slf.vobList_array, i);
-        
-        if (Hlp_Is_oCNpc (vobPtr))
-        {
-            var C_NPC npc; npc = MEM_PtrToInst(vobPtr);
-            if (C_NpcIsDown(npc) 
-			|| NPC_IsDead (npc)
-			|| Npc_IsPlayer(npc)
-			|| (slfInstance == vobPtr)) {
-                //remove down,dead,player,self from vobList_array
-                _Ninja_Quickloot_NPC_RemoveFromVobList (slfInstance, vobPtr);
-
-                //restart loop
-                i = 0;
-                continue;
-            };
-        } else {
-			_Ninja_Quickloot_NPC_RemoveFromVobList (slfInstance, vobPtr);
-			//restart loop
-			i = 0;
-			continue;
+		if (GOTHIC_BASE_VERSION == 2) {
+        	CALL_IntParam (_@(force));
 		};
-        
-        i += 1;
-		if (i >= slf.vobList_numInArray) { break; };
-	end;
-
-	slf = MEM_NullToInst();
-	npc = MEM_NullToInst();
-};
-
-/***
-   Credits: F A W K E S
-
-	_Ninja_Quickloot_NPC_CreateVobList (var int slfInstance, var int range)
-    Pretty much same as NPC_PerceiveAll - however allows you to control range in which Vobs will be collected.
-    When used all collected vobs will be available in slf.vobList_array.
-
-	Kirides: Removes non-npc vobs, Dead and Player NPCs
-***/
-FUNC VOID _Ninja_Quickloot_NPC_CreateVobList (var C_NPC slf, var int range) {
-    //006B7110  .text     Debug data           ?CreateVobList@oCNpc@@QAEXM@Z
-    const int oCNpc__CreateVobList_G1 = 7041296;
-    //0x0075DA40 public: void __thiscall oCNpc::CreateVobList(float)
-    const int oCNpc__CreateVobList_G2 = 7723584;
-    
-    var int slfPtr; slfPtr = MEM_InstToPtr (slf);
-    var int range_f; range_f = mkf(range);
-
-    const int call = 0;
-    if (CALL_Begin(call)) {
-        CALL_IntParam(_@(range_f));
-        CALL__thiscall(_@(slfPtr), MEMINT_SwitchG1G2 (oCNpc__CreateVobList_G1, oCNpc__CreateVobList_G2));
+        CALL__thiscall(_@(npcPtr), MEMINT_SwitchG1G2 (oCNpc__CollectFocusVob_G1, oCNpc__CollectFocusVob_G2));
 
         call = CALL_End();
     };
-	_Ninja_Quickloot_NPC_VobList_RemoveInvalid(slf);
-};
-
-/***
-	Credits: F A W K E S
-
-    Checks if NPC can see vobPtr.
-***/
-FUNC INT _Ninja_Quickloot_NPC_FreeLineOfSight (var int npcPtr, var int vobPtr) {
-    //0069DE50  .text     Debug data           ?FreeLineOfSight@oCNpc@@QAEHPAVzCVob@@@Z
-    const int oCNpc__FreeLineOfSight_G1 = 6938192;
-    //0x007418E0 public: int __thiscall oCNpc::FreeLineOfSight(class zCVob *)
-    const int oCNpc__FreeLineOfSight_G2 = 7608544;
-    
-    if (!vobPtr)    { return 0; };
-    
-    const int call = 0;
-    if (CALL_Begin(call)) {
-        CALL_PutRetValTo(_@(fos));
-        CALL_PtrParam (_@(vobPtr));
-        CALL__thiscall (_@(npcPtr), MEMINT_SwitchG1G2 (oCNpc__FreeLineOfSight_G1, oCNpc__FreeLineOfSight_G2));
-
-        call = CALL_End();
-    };
-
-    var int fos;
-    return fos;
 };
 
 // Used to calculate the "Top"-Offset for a Print
@@ -168,6 +55,9 @@ func void _Ninja_Quickloot_CNpc_SetFocusVob(var C_Npc npc, var int vobPtr) {
 };
 
 func void _Ninja_Quickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var int perc){
+	// Not supported in Gothic 1.
+	if (GOTHIC_BASE_VERSION != 2) { return; };
+
 	var oCNpc oTaker; oTaker = MEM_CpyInst(taker);
     var C_ITEM itmOld;
 	if (Hlp_IsValidItem(item)) {
@@ -183,9 +73,7 @@ func void _Ninja_Quickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var i
 	};
 	// Sends perception to all surrounding NPCs
 	Npc_SendPassivePerc(oTaker, perc, oTaker, oTaker);
-	oTaker = MEM_NullToInst();
 	ITEM = MEM_CpyInst(itmOld);
-	itmOld = MEM_NullToInst();
 };
 
 func void _Ninja_Quickloot_PrintItem(var string name, var int amount) {
@@ -208,11 +96,10 @@ func void _Ninja_Quickloot_PrintItem(var string name, var int amount) {
 
 func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
     var C_Item targetItem; targetItem = MEM_PtrToInst(itemPtr);
-    if (!Hlp_IsValidItem(targetItem)) { targetItem = MEM_NullToInst(); return; };
+    if (!Hlp_IsValidItem(targetItem)) { return; };
 
     var oCItem item_; item_ = MEM_CpyInst(targetItem);
     var int itemAmount; itemAmount = item_.amount;
-    item_ = MEM_NullToInst();
 
     var string itemName; itemName = targetItem.description;
     if (Hlp_StrCmp(itemName, "")) {
@@ -226,7 +113,6 @@ func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
     // Take the item without animation.
     CreateInvItems(taker, itmID, itemAmount);
     Wld_RemoveItem(targetItem);
-	targetItem = MEM_NullToInst();
 
     // Remove the Item from focus.
     _Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
@@ -310,7 +196,6 @@ func void _Ninja_Quickloot_Container_OnState(var string state, var int stateNo) 
 		self = Hlp_GetNpc(hero);
 		MEM_CallByID(symId);
 		self = Hlp_GetNpc(oldSlf);
-		oldSlf = MEM_NullToInst();
 	};
 };
 
@@ -338,12 +223,10 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 				};
 				// locked + No key or requires lockpicking, clear focus & exit.
 				_Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
-				lockable = MEM_NullToInst();
 				return;
 			};
 		};
 	};
-	lockable = MEM_NullToInst();
 	var oCMobContainer container; container = MEM_PtrToInst(containerPtr);
 
 	var int nodePtr; nodePtr = container.containList_next;
@@ -367,14 +250,12 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 
 		nodePtr = node.next;
 	end;
-	oItem = MEM_NullToInst();
 	// Remove the container contents, by NULL-ing the first item pointer of the list.
 	container.containList_next = 0;
 
 	// Notify surrounding NPCs that we stole from a chest.
 	_Ninja_Quickloot_PerceiveAction(taker, containerPtr, PERC_ASSESSUSEMOB);
 	_Ninja_Quickloot_Container_ExecuteStates(container);
-	container = MEM_NullToInst();
 	_Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
 };
 
@@ -398,6 +279,8 @@ func void _Ninja_Quickloot_ClearRuneInv(var C_Npc targetNpc) {
 	
 };
 
+const int _Ninja_Quickloot_LootKey = 525 /* MOUSE_BUTTONRIGHT */;
+
 func void _Ninja_Quickloot_Loot() {
 	var int delayCounter;
 	var int delay;
@@ -416,8 +299,7 @@ func void _Ninja_Quickloot_Loot() {
 		delayCounter += MEM_Timer.frameTime;
 		return;
 	};
-	// Check for RMB pressed
-	if (!MEM_KeyPressed(MOUSE_BUTTONRIGHT)) { return; };
+	if (!MEM_KeyPressed(_Ninja_Quickloot_LootKey)) { return; };
 
 	if (Npc_HasReadiedWeapon(hero) || Npc_HasReadiedRangedWeapon(hero) || Npc_HasReadiedMeleeWeapon(hero)) {
 		return;
@@ -427,7 +309,9 @@ func void _Ninja_Quickloot_Loot() {
 	};
 
 	var oCNpc her; her = MEM_CpyInst(hero);
-	if (!_Ninja_Quickloot_NpcHasValidBodyState(her)) { her = MEM_NullToInst(); return ; };
+	if (!_Ninja_Quickloot_NpcHasValidBodyState(her)) { return ; };
+
+	if (!her.focus_vob) { return ; };
 
 	if (Hlp_Is_oCNpc(her.focus_vob)) {
 		var C_Npc targetNpc; targetNpc = MEM_PtrToInst(her.focus_vob);
@@ -438,7 +322,6 @@ func void _Ninja_Quickloot_Loot() {
 			_Ninja_Quickloot_ClearRuneInv(targetNpc);
 			_Ninja_Quickloot_LootNpc(targetNpc, hero);
 		};
-		targetNpc = MEM_NullToInst();
 	} else if (Hlp_Is_oCItem(her.focus_vob)) {
 		_Ninja_Quickloot_TakeOrStealItem(hero, her.focus_vob);
 		_Ninja_Quickloot_NPC_CollectFocusVob(hero, /* force: */ 1);
@@ -446,15 +329,71 @@ func void _Ninja_Quickloot_Loot() {
 	} else if (Hlp_Is_oCMobContainer(her.focus_vob)) {
 		_Ninja_Quickloot_LootContainer(hero, her.focus_vob);
 	};
-	her = MEM_NullToInst();
+};
+
+func int Ninja_Quickloot_ReadOptKey() {
+	const int optionKey = -1;
+	if (!MEM_GothOptExists("NINJA_QUICKLOOT", "Key")) {
+		if (GOTHIC_BASE_VERSION == 2) {
+			MEM_SetGothOpt("NINJA_QUICKLOOT", "Key", "RMB");
+		} else {
+			MEM_SetGothOpt("NINJA_QUICKLOOT", "Key", "V");
+		};
+	};
+	if (GOTHIC_BASE_VERSION != 2) {
+		optionKey = KEY_V;
+	};
+
+	var string keyOpt; keyOpt = MEM_GetGothOpt("NINJA_QUICKLOOT", "Key");
+	keyOpt = STR_Upper(keyOpt);
+	if      (Hlp_StrCmp(keyOpt, "")) { /* Default */ }
+	else if (Hlp_StrCmp(keyOpt, "A")) { optionKey = KEY_A ; }
+	else if (Hlp_StrCmp(keyOpt, "B")) { optionKey = KEY_B ; }
+	else if (Hlp_StrCmp(keyOpt, "C")) { optionKey = KEY_C ; }
+	else if (Hlp_StrCmp(keyOpt, "D")) { optionKey = KEY_D ; }
+	else if (Hlp_StrCmp(keyOpt, "E")) { optionKey = KEY_E ; }
+	else if (Hlp_StrCmp(keyOpt, "F")) { optionKey = KEY_F ; }
+	else if (Hlp_StrCmp(keyOpt, "G")) { optionKey = KEY_G ; }
+	else if (Hlp_StrCmp(keyOpt, "H")) { optionKey = KEY_H ; }
+	else if (Hlp_StrCmp(keyOpt, "I")) { optionKey = KEY_I ; }
+	else if (Hlp_StrCmp(keyOpt, "J")) { optionKey = KEY_J ; }
+	else if (Hlp_StrCmp(keyOpt, "K")) { optionKey = KEY_K ; }
+	else if (Hlp_StrCmp(keyOpt, "L")) { optionKey = KEY_L ; }
+	else if (Hlp_StrCmp(keyOpt, "M")) { optionKey = KEY_M ; }
+	else if (Hlp_StrCmp(keyOpt, "N")) { optionKey = KEY_N ; }
+	else if (Hlp_StrCmp(keyOpt, "O")) { optionKey = KEY_O ; }
+	else if (Hlp_StrCmp(keyOpt, "P")) { optionKey = KEY_P ; }
+	else if (Hlp_StrCmp(keyOpt, "Q")) { optionKey = KEY_Q ; }
+	else if (Hlp_StrCmp(keyOpt, "R")) { optionKey = KEY_R ; }
+	else if (Hlp_StrCmp(keyOpt, "S")) { optionKey = KEY_S ; }
+	else if (Hlp_StrCmp(keyOpt, "T")) { optionKey = KEY_T ; }
+	else if (Hlp_StrCmp(keyOpt, "U")) { optionKey = KEY_U ; }
+	else if (Hlp_StrCmp(keyOpt, "V")) { optionKey = KEY_V ; }
+	else if (Hlp_StrCmp(keyOpt, "W")) { optionKey = KEY_W ; }
+	else if (Hlp_StrCmp(keyOpt, "X")) { optionKey = KEY_X ; }
+	else if (Hlp_StrCmp(keyOpt, "Y")) { optionKey = KEY_Y ; }
+	else if (Hlp_StrCmp(keyOpt, "Z")) { optionKey = KEY_Z ; }
+	else if (Hlp_StrCmp(keyOpt, "RMB")) { optionKey = MOUSE_BUTTONRIGHT ; }
+	else if (Hlp_StrCmp(keyOpt, "MMB")) { optionKey = MOUSE_BUTTONMID ; }
+	else if (Hlp_StrCmp(keyOpt, "MB1")) { optionKey = MOUSE_XBUTTON1 ; }
+	else if (Hlp_StrCmp(keyOpt, "MB2")) { optionKey = MOUSE_XBUTTON2 ; }
+	else if (Hlp_StrCmp(keyOpt, "MB3")) { optionKey = MOUSE_XBUTTON3 ; }
+	else if (Hlp_StrCmp(keyOpt, "MB4")) { optionKey = MOUSE_XBUTTON4 ; }
+	else if (Hlp_StrCmp(keyOpt, "MB5")) { optionKey = MOUSE_XBUTTON5 ; }
+	;
+
+	return +optionKey;
+};
+
+func void Ninja_Quickloot_Init_Options() {
+	Ninja_Quickloot_Print_Font = "Ninja_QuickLoot_Font_DE.tga";
+	_Ninja_Quickloot_LootKey = Ninja_Quickloot_ReadOptKey();
 };
 
 /// Init-function called by Ninja
 func void Ninja_Quickloot_Init_Internal() {
 	MEM_Info(ConcatStrings(ConcatStrings("Initialize ", NINJA_QUICKLOOT_VERSION), "."));
 	LeGo_MergeFlags(LeGo_FrameFunctions);
-
-	Ninja_Quickloot_Print_Font = "Ninja_QuickLoot_Font_DE.tga";
 
 	FF_ApplyOnceGT(_Ninja_Quickloot_Loot);
     MEM_Info(ConcatStrings(NINJA_QUICKLOOT_VERSION, " was initialized successfully."));
