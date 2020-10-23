@@ -1,18 +1,11 @@
 [BEGINVDF]
-Comment=Rightclick to Quickloot! (v1.2)
+Comment=Rightclick to Quickloot! (v1.8, G1+G2)
 BaseDir=.\
 VDFName=.\Quickloot.vdf
-
 [FILES]
-; Resources (list the specific files from _work here)
-; _work\* -r
-
-; Script files
 Ninja\Quickloot\* -r
 _Work\* -r
-
 [EXCLUDE]
 *_DEV.*
 [INCLUDE]
-
 [ENDVDF]
