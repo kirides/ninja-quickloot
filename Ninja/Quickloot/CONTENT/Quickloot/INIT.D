@@ -319,12 +319,12 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 };
 
 func void _Ninja_Quickloot_ClearRuneInv(var C_Npc targetNpc) {
-	B_ClearRuneInv(targetNpc);
+	// B_ClearRuneInv(targetNpc);
 	
 	// Use the following code if planning on using it as a patch.
 	// Code assumes if B_ClearRuneInv exists
 	// it takes a C_NPC as single parameter.
-	/*
+	
 	const int once = 1;
 	const int fnId = -1;
 	if (once) {
@@ -335,7 +335,7 @@ func void _Ninja_Quickloot_ClearRuneInv(var C_Npc targetNpc) {
 		MEM_PushInstParam(targetNpc); // Push targetNpc for function parameter.
 		MEM_CallByID(fnId);
 	};
-	*/
+	
 };
 const int _Ninja_Quickloot_LootKey = 525; /* MOUSE_BUTTONRIGHT */
 
