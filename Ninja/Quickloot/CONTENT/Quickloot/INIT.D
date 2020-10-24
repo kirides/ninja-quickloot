@@ -27,6 +27,7 @@ const int _Ninja_Quickloot_Print_Count_Limit_Current = 0;
 
 const int _Ninja_Quickloot_Print_Count_Max = 15;
 const int _Ninja_Quickloot_Print_TextHeight    = 150;
+const int _Ninja_Quickloot_Print_AnimSpeed = 700;
 const int _Ninja_Quickloot_Set_AnimStart_X = 4096;
 const int _Ninja_Quickloot_Set_AnimStart_Y = 4096;
 const string _Ninja_Quickloot_Received_Prefix = "Erhalten: ";
@@ -56,13 +57,13 @@ func void _Ninja_Quickloot_PrintLoot_Anim(var string text, var int startX, var i
     var int MyAnim8_X; MyAnim8_X = Anim8_NewExt(startX, _Ninja_Quickloot_AnimMoveX, MyText, FALSE);
     var int MyAnim8_Y; MyAnim8_Y = Anim8_NewExt(startY, _Ninja_Quickloot_AnimMoveY, MyText, FALSE);
 
-    Anim8(MyAnim8_X, stopX, 1100, A8_SlowStart);                    // Move to target X location
-	Anim8q(MyAnim8_X, stopX, _Ninja_Quickloot_Print_Duration, A8_Wait); // Wait there for X seconds
-	Anim8_RemoveIfEmpty(MyAnim8_X, TRUE);                           // Cleanup automatically
-	Anim8_RemoveDataIfEmpty(MyAnim8_X, TRUE);                       // also remove Data
+    Anim8(MyAnim8_X, stopX, _Ninja_Quickloot_Print_AnimSpeed, A8_SlowStart); // Move to target X location
+	Anim8q(MyAnim8_X, stopX, _Ninja_Quickloot_Print_Duration, A8_Wait);      // Wait there for X seconds
+	Anim8_RemoveIfEmpty(MyAnim8_X, TRUE);                                    // Cleanup automatically
+	Anim8_RemoveDataIfEmpty(MyAnim8_X, TRUE);                                // also remove Data
 
-    Anim8(MyAnim8_Y, stopY, 1100, A8_SlowEnd);                      // Also move on the Y axis
-	Anim8_RemoveIfEmpty(MyAnim8_Y, TRUE);                           // only clean Anim
+    Anim8(MyAnim8_Y, stopY, _Ninja_Quickloot_Print_AnimSpeed, A8_SlowEnd);   // Also move on the Y axis
+	Anim8_RemoveIfEmpty(MyAnim8_Y, TRUE);                                    // only clean Anim
 };
 
 func void _Ninja_Quickloot_PrintLootExt(var string text, var int anim) {
@@ -473,9 +474,16 @@ func void Ninja_Quickloot_Init_Options() {
 	_Ninja_Quickloot_LootKey = Ninja_Quickloot_ReadOptKey();
 
 	_Ninja_Quickloot_Received_Prefix = Ninja_Quickloot_GetOpt("Prefix", "Erhalten:");
+
+
 	var int animated; animated = STR_ToInt(Ninja_Quickloot_GetOpt("UseAnimations", "1"));
+	
 	if (animated) {
 		_Ninja_Quickloot_Received_Prefix = "";
+	};
+	_Ninja_Quickloot_Print_AnimSpeed = STR_ToInt(Ninja_Quickloot_GetOpt("AnimSpeed", "700"));
+	if (_Ninja_Quickloot_Print_AnimSpeed <= 0 || _Ninja_Quickloot_Print_AnimSpeed >= 2000) {
+		_Ninja_Quickloot_Print_AnimSpeed = 700;
 	};
 	if (MEMINT_SwitchG1G2(0, 1) && animated) {
 		HookEngineF(7093113 /*006C3B79*/, 8, _Ninja_Quickloot_Set_AnimStart);
