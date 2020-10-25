@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.1"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -33,8 +33,8 @@ const int _Ninja_Quickloot_Set_AnimStart_Y = 4096;
 const string _Ninja_Quickloot_Received_Prefix = "Erhalten: ";
 
 func void _Ninja_Quickloot_Set_AnimStart() {
-	_Ninja_Quickloot_Set_AnimStart_Y = EBX;
-	_Ninja_Quickloot_Set_AnimStart_X = EAX;
+	_Ninja_Quickloot_Set_AnimStart_Y = MEMINT_SwitchG1G2(ESI, EBX);
+	_Ninja_Quickloot_Set_AnimStart_X = MEMINT_SwitchG1G2(EDI, EAX);
 };
 
 func void _Ninja_Quickloot_AnimMoveX(var int MyText, var int Position) {
@@ -485,8 +485,15 @@ func void Ninja_Quickloot_Init_Options() {
 	if (_Ninja_Quickloot_Print_AnimSpeed <= 0 || _Ninja_Quickloot_Print_AnimSpeed >= 2000) {
 		_Ninja_Quickloot_Print_AnimSpeed = 700;
 	};
-	if (MEMINT_SwitchG1G2(0, 1) && animated) {
-		HookEngineF(7093113 /*006C3B79*/, 8, _Ninja_Quickloot_Set_AnimStart);
+	if (animated) {
+		const int _UpdatePlayerStatus_PrintFocusName_G1 = 6526632; /* 006396A8 */
+		const int _UpdatePlayerStatus_PrintFocusName_G2 = 7093113; /* 006C3B79 */
+		HookEngineF(
+			MEMINT_SwitchG1G2(
+				_UpdatePlayerStatus_PrintFocusName_G1,
+				_UpdatePlayerStatus_PrintFocusName_G2), 
+			8,
+			_Ninja_Quickloot_Set_AnimStart);
 		_Ninja_Quickloot_Print_UseAnimation = 1;
 	};
 };
