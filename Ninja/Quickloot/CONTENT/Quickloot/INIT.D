@@ -361,6 +361,7 @@ func void _Ninja_Quickloot_Loot() {
 	// Check for RMB pressed
 	if (!MEM_KeyPressed(_Ninja_Quickloot_LootKey)) { return; };
 
+	// TODO: Fix abuse of Spells like "Telekinesis"
 	if (Npc_HasReadiedWeapon(hero) || Npc_HasReadiedRangedWeapon(hero) || Npc_HasReadiedMeleeWeapon(hero)) {
 		return;
 	};
@@ -474,17 +475,21 @@ func void Ninja_Quickloot_Init_Options() {
 	_Ninja_Quickloot_LootKey = Ninja_Quickloot_ReadOptKey();
 
 	_Ninja_Quickloot_Received_Prefix = Ninja_Quickloot_GetOpt("Prefix", "Erhalten:");
-
+	if (!Hlp_StrCmp(_Ninja_Quickloot_Received_Prefix, "")) {
+		_Ninja_Quickloot_Received_Prefix = ConcatStrings(_Ninja_Quickloot_Received_Prefix, " ");
+	};
 
 	var int animated; animated = STR_ToInt(Ninja_Quickloot_GetOpt("UseAnimations", "1"));
-	
 	if (animated) {
 		_Ninja_Quickloot_Received_Prefix = "";
+		_Ninja_Quickloot_Print_UseAnimation = 1;
 	};
+
 	_Ninja_Quickloot_Print_AnimSpeed = STR_ToInt(Ninja_Quickloot_GetOpt("AnimSpeed", "700"));
 	if (_Ninja_Quickloot_Print_AnimSpeed <= 0 || _Ninja_Quickloot_Print_AnimSpeed >= 2000) {
 		_Ninja_Quickloot_Print_AnimSpeed = 700;
 	};
+
 	if (animated) {
 		const int _UpdatePlayerStatus_PrintFocusName_G1 = 6526632; /* 006396A8 */
 		const int _UpdatePlayerStatus_PrintFocusName_G2 = 7093113; /* 006C3B79 */
@@ -494,7 +499,6 @@ func void Ninja_Quickloot_Init_Options() {
 				_UpdatePlayerStatus_PrintFocusName_G2), 
 			8,
 			_Ninja_Quickloot_Set_AnimStart);
-		_Ninja_Quickloot_Print_UseAnimation = 1;
 	};
 };
 
