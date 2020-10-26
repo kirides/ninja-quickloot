@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.1"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.2"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -340,6 +340,20 @@ func void _Ninja_Quickloot_ClearRuneInv(var C_Npc targetNpc) {
 };
 const int _Ninja_Quickloot_LootKey = 525; /* MOUSE_BUTTONRIGHT */
 
+func int _Ninja_Quickloot__Npc_GetWeaponMode(var C_NPC slf) {
+	var int npcPtr; npcPtr = MEM_InstToPtr(slf);
+	const int oCNpc___GetWeaponMode_G1 = 6903840; // 0x690D70
+	const int oCNpc___GetWeaponMode_G2 = 7572544; // 0x738C40
+    const int call = 0;
+	var int retVal; retVal = 0;
+    if (CALL_Begin(call)) {
+		CALL_PutRetValTo(_@(retVal));
+        CALL__thiscall(_@(npcPtr), MEMINT_SwitchG1G2 (oCNpc___GetWeaponMode_G1, oCNpc___GetWeaponMode_G2));
+        call = CALL_End();
+    };
+	return retVal;
+};
+
 func void _Ninja_Quickloot_Loot() {
 	var int delayCounter;
 	var int delay;
@@ -358,11 +372,12 @@ func void _Ninja_Quickloot_Loot() {
 		delayCounter += MEM_Timer.frameTime;
 		return;
 	};
-	// Check for RMB pressed
-	if (!MEM_KeyPressed(_Ninja_Quickloot_LootKey)) { return; };
+	// Check for RMB pressed / held
+	var int keyState; keyState = MEM_KeyState(_Ninja_Quickloot_LootKey);
+	if (!(keyState == KEY_PRESSED || keyState == KEY_HOLD)) { return; };
 
-	// TODO: Fix abuse of Spells like "Telekinesis"
-	if (Npc_HasReadiedWeapon(hero) || Npc_HasReadiedRangedWeapon(hero) || Npc_HasReadiedMeleeWeapon(hero)) {
+	// Check if any weapon is "readied" (also fist/magic)
+	if (_Ninja_Quickloot__Npc_GetWeaponMode(hero) != 0) {
 		return;
 	};
 	if (Npc_IsInState(hero, ZS_Unconscious)) {
@@ -499,9 +514,97 @@ func void Ninja_Quickloot_Init_Options() {
 				_UpdatePlayerStatus_PrintFocusName_G2), 
 			8,
 			_Ninja_Quickloot_Set_AnimStart);
+		// Workaround for wrong "invalid pointer" check
+		HookDaedalusFunc(_Anim8_Loop, _Ninja_Quickloot_Anim8_Loop_WorkAround);
 	};
 };
 
+func int _Ninja_Quickloot_Anim8_Loop_WorkAround(var int hndl) {
+    var A8Head h; h = get(hndl);
+    if(!h.queue) {
+        return rContinue;
+    };
+
+    if(!List_HasLength(h.queue, 2)) {
+        return rContinue;
+    };
+
+    var int ldata; ldata = List_Get(h.queue, 2);
+    if(!ldata) {
+        List_Delete(h.queue, 2);
+        return rContinue;
+    };
+
+    var A8Command c; c = get(ldata);
+
+    // Eigentliche Interpolierung
+    var int t; t = mkf(TimerGT() - c.startTime);
+
+    if(c.interpol&&c.interpol < A8_Wait) {
+        if(c.interpol == A8_Constant) {
+            // s = v*t;
+            h.value = mulf(c.velo, t);
+        }
+        else if(c.interpol == A8_SlowEnd) {
+            // s = a/2*t^2 + v0*t
+            h.value = addf(mulf(mulf(c.velo, floatHalb), mulf(t, t)), mulf(c.startV, t));
+        }
+        else if(c.interpol == A8_SlowStart) {
+            // s = a/2*t^2
+            h.value = mulf(mulf(c.velo, floatHalb), mulf(t, t));
+        };
+        h.value = addf(c.startVal, h.value);
+    };
+
+    if(gef(t, c.timeSpan)) {
+        if(c.interpol != A8_Wait) {
+            h.value = c.target;
+        };
+    };
+
+    if(h.fnc) {
+        if(h.data) {
+            h.data;
+        };
+        if(h.flt) {
+            h.value;
+        }
+        else {
+            roundf(h.value);
+        };
+        MEM_CallByPtr(h.fnc);
+        // Might have been deleted just now
+        if (!Hlp_IsValidHandle(hndl)) {
+            return rContinue;
+        };
+    };
+
+    if(gef(t, c.timeSpan)) {
+        delete(ldata);
+        List_Delete(h.queue, 2);
+        // ggf. Liste aktualisieren
+        if(List_HasLength(h.queue, 2)) {
+            ldata = List_Get(h.queue, 2);
+            if(!ldata) {
+                List_Delete(h.queue, 2);
+                return rContinue;
+            };
+            c = get(ldata);
+            c.startVal = h.value;
+            c.startTime = TimerGT();
+            _Anim8_SetVelo(h, c);
+        }
+        else if(h.dif) {
+            if(h.ddif) {
+                if(h.data) {
+                    delete(h.data);
+                };
+            };
+            delete(hndl);
+        };
+    };
+    return rContinue;
+};
 /// Init-function called by Ninja
 func void Ninja_Quickloot_Init_Internal() {
 	MEM_Info(ConcatStrings(ConcatStrings("Initialize ", NINJA_QUICKLOOT_VERSION), "."));
