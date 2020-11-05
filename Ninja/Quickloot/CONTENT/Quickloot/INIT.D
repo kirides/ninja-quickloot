@@ -262,6 +262,26 @@ func void _Ninja_Quickloot_Container_ExecuteStates(var oCMobContainer container)
 	};
 };
 
+func int _Ninja_Quickloot_KnowsPicklocking() {
+	// return Npc_GetTalentSkill (hero, NPC_TALENT_PICKLOCK);
+
+	/*
+		Use the code below for use in a PATCH
+	*/
+	const int talIdx = 0;
+	if (talIdx == 0) {
+		var int sym; sym = MEM_GetParserSymbol("NPC_TALENT_PICKLOCK");
+		if (sym != -1) {
+			var zCPar_Symbol s; s = _^(sym);
+			talIdx = s.content;
+		};
+	};
+	if (talIdx != 0) {
+		return Npc_GetTalentSkill (hero, talIdx);
+	};
+	return 1;
+};
+
 func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) {
 	if (Hlp_Is_oCMobLockable(containerPtr)) {
 		var oCMobLockable lockable; lockable = MEM_PtrToInst(containerPtr);
@@ -276,6 +296,10 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 				var int needsNoKey; needsNoKey = Hlp_StrCmp(lockable.keyInstance, "");
 				if (!needsNoKey) {
 					AI_OutputSVM_Overlay(taker, taker, "$KEYMISSING");
+				} else if (!_Ninja_Quickloot_KnowsPicklocking()){
+					AI_OutputSVM_Overlay(taker, taker, "$NOPICKLOCKTALENT");
+				} else {
+					AI_OutputSVM_Overlay(taker, taker, "$PICKLOCKMISSING");
 				};
 				// locked + No key or requires lockpicking, clear focus & exit.
 				_Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
@@ -354,6 +378,24 @@ func int _Ninja_Quickloot__Npc_GetWeaponMode(var C_NPC slf) {
 	return retVal;
 };
 
+func void _Ninja_Quickloot_ToggleRMBCancel(var int on) {
+	const int CGameManager__HandleEvent_CaseRMB_G2 = 4370169;
+
+	const int once = 1;
+	if (MEMINT_SwitchG1G2(0, 1)) {
+		if (once) {
+			MemoryProtectionOverride(CGameManager__HandleEvent_CaseRMB_G2, 4);
+			once = 0;
+		};
+
+		if (on){
+			MEM_WriteInt(CGameManager__HandleEvent_CaseRMB_G2, 525);
+		} else {
+			MEM_WriteInt(CGameManager__HandleEvent_CaseRMB_G2, 999999);
+		};
+	};
+};
+
 func void _Ninja_Quickloot_Loot() {
 	var int delayCounter;
 	var int delay;
@@ -363,6 +405,7 @@ func void _Ninja_Quickloot_Loot() {
 		_Ninja_Quickloot_Print_Count_Limit_Current = 0;
 		_Ninja_Quickloot_Print_Count = 0;
 		_Ninja_Quickloot_Print_Timer = 0;
+		_Ninja_Quickloot_ToggleRMBCancel(TRUE);
 	};
 	// Throttle item-pickup
 	if (delay > 0 && delay <= delayCounter) {
@@ -403,6 +446,7 @@ func void _Ninja_Quickloot_Loot() {
 		delay = 80;
 	} else if (Hlp_Is_oCMobContainer(her.focus_vob)) {
 		_Ninja_Quickloot_LootContainer(hero, her.focus_vob);
+		_Ninja_Quickloot_ToggleRMBCancel(FALSE);
 	};
 	her = MEM_NullToInst();
 };
@@ -449,7 +493,7 @@ func int Ninja_Quickloot_ReadOptKey() {
 	else if (Hlp_StrCmp(keyOpt, "X")) { optionKey = KEY_X ; }
 	else if (Hlp_StrCmp(keyOpt, "Y")) { optionKey = KEY_Y ; }
 	else if (Hlp_StrCmp(keyOpt, "Z")) { optionKey = KEY_Z ; }
-	else if (Hlp_StrCmp(keyOpt, "RMB")) { optionKey = MOUSE_BUTTONRIGHT ; }
+	else if (Hlp_StrCmp(keyOpt, "RMB")) { optionKey = MEMINT_SwitchG1G2(2052, MOUSE_BUTTONRIGHT); }
 	else if (Hlp_StrCmp(keyOpt, "MMB")) { optionKey = MOUSE_BUTTONMID ; }
 	else if (Hlp_StrCmp(keyOpt, "MB1")) { optionKey = MOUSE_XBUTTON1 ; }
 	else if (Hlp_StrCmp(keyOpt, "MB2")) { optionKey = MOUSE_XBUTTON2 ; }
