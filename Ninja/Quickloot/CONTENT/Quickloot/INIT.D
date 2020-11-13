@@ -147,9 +147,28 @@ func void _Ninja_Quickloot_PrintItem(var string name, var int amount) {
 	};
 };
 
+func void _Ninja_Quickloot_World_DisableVob(var int vobPtr) {
+	const int oCWorld__DisableVob_G2 = 7865440; // 00780460
+	if (MEMINT_SwitchG1G2(1, 0)) {
+		// G1 is not supported for this.
+		return;
+	};
+	var int worldPtr; worldPtr = _@(MEM_World);
+
+	const int call = 0;
+    if (CALL_Begin(call)) {
+        CALL_PtrParam(_@(vobPtr));
+        CALL__thiscall(_@(worldPtr), oCWorld__DisableVob_G2);
+
+        call = CALL_End();
+    };
+};
+
 func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
     var C_Item targetItem; targetItem = MEM_PtrToInst(itemPtr);
     if (!Hlp_IsValidItem(targetItem)) { targetItem = MEM_NullToInst(); return; };
+	
+	_Ninja_Quickloot_World_DisableVob(itemPtr);
 
     var oCItem item_; item_ = MEM_CpyInst(targetItem);
     var int itemAmount; itemAmount = item_.amount;
@@ -271,7 +290,7 @@ func int _Ninja_Quickloot_KnowsPicklocking() {
 	const int talIdx = 0;
 	if (talIdx == 0) {
 		var int sym; sym = MEM_GetParserSymbol("NPC_TALENT_PICKLOCK");
-		if (sym != -1) {
+		if (sym != 0) {
 			var zCPar_Symbol s; s = _^(sym);
 			talIdx = s.content;
 		};
