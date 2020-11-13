@@ -168,8 +168,6 @@ func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
     var C_Item targetItem; targetItem = MEM_PtrToInst(itemPtr);
     if (!Hlp_IsValidItem(targetItem)) { targetItem = MEM_NullToInst(); return; };
 	
-	_Ninja_Quickloot_World_DisableVob(itemPtr);
-
     var oCItem item_; item_ = MEM_CpyInst(targetItem);
     var int itemAmount; itemAmount = item_.amount;
     item_ = MEM_NullToInst();
@@ -185,6 +183,8 @@ func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
 
     // Take the item without animation.
     CreateInvItems(taker, itmID, itemAmount);
+
+	_Ninja_Quickloot_World_DisableVob(itemPtr);
     Wld_RemoveItem(targetItem);
 	targetItem = MEM_NullToInst();
 
