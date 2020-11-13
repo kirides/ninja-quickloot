@@ -462,6 +462,7 @@ func void _Ninja_Quickloot_Loot() {
 	} else if (Hlp_Is_oCItem(her.focus_vob)) {
 		_Ninja_Quickloot_TakeOrStealItem(hero, her.focus_vob);
 		_Ninja_Quickloot_NPC_CollectFocusVob(hero, /* force: */ 1);
+		_Ninja_Quickloot_ToggleRMBCancel(FALSE);
 		delay = 80;
 	} else if (Hlp_Is_oCMobContainer(her.focus_vob)) {
 		_Ninja_Quickloot_LootContainer(hero, her.focus_vob);
