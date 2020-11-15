@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.3"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.5"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -263,6 +263,21 @@ func void _Ninja_Quickloot_Unlock(var c_npc npc, var oCMobLockable lockable, var
 	};
 };
 
+
+func int _Ninja_Quickloot_Container_ConditionFunc(var oCMobContainer container) {
+	if (Hlp_StrCmp(container._oCMobInter_conditionFunc, "")) {
+		return 1;
+	};
+
+	var int symId; symId = MEM_FindParserSymbol(container._oCMobInter_conditionFunc);
+	if (symId != -1) {
+		MEM_CallByID(symId);
+		return +MEM_PopIntResult();
+	};
+
+	return 1;
+};
+
 func void _Ninja_Quickloot_Container_OnState(var string state, var int stateNo) {
 	var int symId; symId = MEM_FindParserSymbol(ConcatStrings(state, ConcatStrings("_S", IntToString(stateNo))));
 	if (symId != -1) {
@@ -329,6 +344,10 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 	};
 	lockable = MEM_NullToInst();
 	var oCMobContainer container; container = MEM_PtrToInst(containerPtr);
+	if (!_Ninja_Quickloot_Container_ConditionFunc(container)) {
+		_Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
+		return;
+	};
 
 	var int nodePtr; nodePtr = container.containList_next;
 	var zCListSort node;
