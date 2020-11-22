@@ -292,7 +292,10 @@ func void _Ninja_Quickloot_Container_OnState(var string state, var int stateNo) 
 func void _Ninja_Quickloot_Container_ExecuteStates(var oCMobContainer container) {
 	if (!Hlp_StrCmp(container._oCMobInter_onStateFuncName, "")) {
 		// Hat OnStateFunc, sollten wir ausführen!
+		_Ninja_Quickloot_Container_OnState(container._oCMobInter_onStateFuncName, 0);
 		_Ninja_Quickloot_Container_OnState(container._oCMobInter_onStateFuncName, 1);
+		_Ninja_Quickloot_Container_OnState(container._oCMobInter_onStateFuncName, 2);
+		_Ninja_Quickloot_Container_OnState(container._oCMobInter_onStateFuncName, 3);
 	};
 };
 
