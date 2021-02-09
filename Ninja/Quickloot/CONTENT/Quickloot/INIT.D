@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.8"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.9"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -194,6 +194,8 @@ func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
 };
 
 func int _Ninja_Quickloot_NpcHasValidBodyState(var oCNPC npc) {
+	if (npc.interactMob) { return 0; };
+
 	return (((npc.bitfield[4] & BS_STAND) > 0)
 		|| ((npc.bitfield[4] & BS_WALK) > 0)
 		|| ((npc.bitfield[4] & BS_SNEAK) > 0)
