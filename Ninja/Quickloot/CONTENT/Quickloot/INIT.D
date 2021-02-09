@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.7"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.8"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -321,19 +321,34 @@ func int _Ninja_Quickloot_KnowsPicklocking() {
 	return 1;
 };
 
-func void _Ninja_Quickloot_Mob_RemoveAllItems(var int mobPtr) {
-    var oCMobContainer mob; mob = _^(mobPtr);
-	GetItemHelper();
-	var oCNpc helper; helper = Hlp_GetNpc(Item_Helper);
+func void _Ninja_Quickloot_MobRemoveItems_RemoveItem(var int pThis, var int itmAddress) {
+	const int __oCMobContainerRemoveAddress_G1 = 6831792; //0x00683eb0
+	const int __oCMobContainerRemoveAddress_G2 = 7495664; //0x00725FF0
 
-	// Backup old inventory
-	var int oldInventory; oldInventory = helper.inventory2_inventory_next;
+	const int call = 0;
+    if (CALL_Begin(call)) {
+		CALL_IntParam (_@(itmAddress));
+        CALL__thiscall(_@(pThis), MEMINT_SwitchG1G2 (__oCMobContainerRemoveAddress_G1, __oCMobContainerRemoveAddress_G2));
 
-    helper.inventory2_inventory_next = mob.containList_next;
-	Npc_ClearInventory(helper);
+        call = CALL_End();
+    };
+};
+func void _Ninja_Quickloot_Mob_RemoveAllItems(var int containerAddress) {
+	var oCMobContainer container; container = _^(containerAddress);
+	var int ptr; ptr = container.containList_next;
+	var zCListSort list;
 
-    mob.containList_next = helper.inventory2_inventory_next;
-    helper.inventory2_inventory_next = oldInventory;
+	while(ptr != 0);
+		list = _^(ptr);
+		var int itmPtr; itmPtr = list.data;
+		
+		if (itmPtr == 0) {
+			ptr  = list.next;
+		} else {
+			_Ninja_Quickloot_MobRemoveItems_RemoveItem(containerAddress, itmPtr);
+			ptr = container.containList_next;
+		};
+	end;
 };
 
 func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) {
