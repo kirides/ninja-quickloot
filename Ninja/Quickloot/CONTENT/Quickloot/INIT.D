@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.6"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.7"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -223,10 +223,11 @@ func void _Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
 				slotNr += 1;
 				continue;
 			};
-            if (item.flags & ITEM_ACTIVE_LEGO) {
-				slotNr += 1;
-				continue;
-			};
+			// For now, also loot equipped stuff.
+            // if (item.flags & ITEM_ACTIVE_LEGO) {
+			// 	slotNr += 1;
+			// 	continue;
+			// };
 			if (amount > 0) {
 				itemName = item.description;
 				if (Hlp_StrCmp(itemName, "")) {
@@ -290,6 +291,7 @@ func void _Ninja_Quickloot_Container_OnState(var string state, var int stateNo) 
 };
 
 func void _Ninja_Quickloot_Container_ExecuteStates(var oCMobContainer container) {
+	// TODO: implement calling OnTrigger for container
 	if (!Hlp_StrCmp(container._oCMobInter_onStateFuncName, "")) {
 		// Hat OnStateFunc, sollten wir ausführen!
 		_Ninja_Quickloot_Container_OnState(container._oCMobInter_onStateFuncName, 0);
@@ -317,6 +319,21 @@ func int _Ninja_Quickloot_KnowsPicklocking() {
 		return Npc_GetTalentSkill (hero, talIdx);
 	};
 	return 1;
+};
+
+func void _Ninja_Quickloot_Mob_RemoveAllItems(var int mobPtr) {
+    var oCMobContainer mob; mob = _^(mobPtr);
+	GetItemHelper();
+	var oCNpc helper; helper = Hlp_GetNpc(Item_Helper);
+
+	// Backup old inventory
+	var int oldInventory; oldInventory = helper.inventory2_inventory_next;
+
+    helper.inventory2_inventory_next = mob.containList_next;
+	Npc_ClearInventory(helper);
+
+    mob.containList_next = helper.inventory2_inventory_next;
+    helper.inventory2_inventory_next = oldInventory;
 };
 
 func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) {
@@ -374,8 +391,8 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 		nodePtr = node.next;
 	end;
 	oItem = MEM_NullToInst();
-	// Remove the container contents, by NULL-ing the first item pointer of the list.
-	container.containList_next = 0;
+
+	_Ninja_Quickloot_Mob_RemoveAllItems(containerPtr);
 
 	// Notify surrounding NPCs that we stole from a chest.
 	_Ninja_Quickloot_PerceiveAction(taker, containerPtr, PERC_ASSESSUSEMOB);
