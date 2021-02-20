@@ -108,24 +108,22 @@ func void _Ninja_Quickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var i
 	// Not supported in Gothic 1.
 	if (GOTHIC_BASE_VERSION != 2) { return; };
 
-	var oCNpc oTaker; oTaker = MEM_CpyInst(taker);
+	var oCNpc oTaker; oTaker = Hlp_GetNpc(taker);
     var C_ITEM itmOld;
-	if (Hlp_IsValidItem(item)) {
-		itmOld = MEM_CpyInst(item);
-	};
+	if (Hlp_IsValidItem(item)) { itmOld = MEM_CpyInst(item); }
+	else                       { itmOld = MEM_NullToInst();  };
+
 	if (perc == PERC_ASSESSTHEFT) {
 		// Set global ITEM variable. This is for Npc_SendPassivePerc to not report errors.
-		ITEM = MEM_PtrToInst(vobPtr);
+		item = MEM_PtrToInst(vobPtr);
 	};
 	if (perc == PERC_ASSESSUSEMOB) {
 		// Set obstVob variable. NPC will react to action with this.
 		oTaker.rbt_obstVob = vobPtr;
 	};
 	// Sends perception to all surrounding NPCs
-	Npc_SendPassivePerc(oTaker, perc, oTaker, oTaker);
-	oTaker = MEM_NullToInst();
-	ITEM = MEM_CpyInst(itmOld);
-	itmOld = MEM_NullToInst();
+	Npc_SendPassivePerc(oTaker, perc, oTaker, NULL);
+	item = MEM_CpyInst(itmOld);
 };
 
 func void _Ninja_Quickloot_PrintItem(var string name, var int amount) {
@@ -164,20 +162,16 @@ func void _Ninja_Quickloot_World_DisableVob(var int vobPtr) {
     };
 };
 
-func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
-    var C_Item targetItem; targetItem = MEM_PtrToInst(itemPtr);
-    if (!Hlp_IsValidItem(targetItem)) { targetItem = MEM_NullToInst(); return; };
-	
-    var oCItem item_; item_ = MEM_CpyInst(targetItem);
-    var int itemAmount; itemAmount = item_.amount;
-    item_ = MEM_NullToInst();
+func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {	
+    var oCItem targetItem; targetItem = MEM_PtrToInst(itemPtr);
+    if (!Hlp_IsValidItem(targetItem)) { return; };
+    var int itemAmount; itemAmount = targetItem.amount;
 
     var string itemName; itemName = targetItem.description;
     if (Hlp_StrCmp(itemName, "")) {
         itemName = targetItem.name;
     };
     var int itmID; itmID = Hlp_GetInstanceID(targetItem);
-
 
     _Ninja_Quickloot_PerceiveAction(taker, itemPtr, PERC_ASSESSTHEFT);
 
@@ -186,7 +180,6 @@ func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
 
 	_Ninja_Quickloot_World_DisableVob(itemPtr);
     Wld_RemoveItem(targetItem);
-	targetItem = MEM_NullToInst();
 
     // Remove the Item from focus.
     _Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
@@ -536,6 +529,15 @@ func int Ninja_Quickloot_ReadOptKey() {
 			MEM_SetGothOpt("NINJA_QUICKLOOT", "Key", "V");
 		};
 	};
+	const int _real_KEY_Y = KEY_Y;
+	const int _real_KEY_Z = KEY_Z;
+
+	if (HLP_StrCmp(MEM_GetGothOpt("GAME", "keyboardLayout"), "00000407")) {
+		// Handle German keyboard layout.
+		_real_KEY_Y = KEY_Z;
+		_real_KEY_Z = KEY_Y;
+	};
+
 	if (GOTHIC_BASE_VERSION != 2) {
 		optionKey = KEY_V;
 	};
@@ -567,16 +569,15 @@ func int Ninja_Quickloot_ReadOptKey() {
 	else if (Hlp_StrCmp(keyOpt, "V")) { optionKey = KEY_V ; }
 	else if (Hlp_StrCmp(keyOpt, "W")) { optionKey = KEY_W ; }
 	else if (Hlp_StrCmp(keyOpt, "X")) { optionKey = KEY_X ; }
-	else if (Hlp_StrCmp(keyOpt, "Y")) { optionKey = KEY_Y ; }
-	else if (Hlp_StrCmp(keyOpt, "Z")) { optionKey = KEY_Z ; }
+	else if (Hlp_StrCmp(keyOpt, "Y")) { optionKey = _real_KEY_Y ; }
+	else if (Hlp_StrCmp(keyOpt, "Z")) { optionKey = _real_KEY_Z ; }
 	else if (Hlp_StrCmp(keyOpt, "RMB")) { optionKey = MEMINT_SwitchG1G2(2052, MOUSE_BUTTONRIGHT); }
 	else if (Hlp_StrCmp(keyOpt, "MMB")) { optionKey = MOUSE_BUTTONMID ; }
 	else if (Hlp_StrCmp(keyOpt, "MB1")) { optionKey = MOUSE_XBUTTON1 ; }
 	else if (Hlp_StrCmp(keyOpt, "MB2")) { optionKey = MOUSE_XBUTTON2 ; }
 	else if (Hlp_StrCmp(keyOpt, "MB3")) { optionKey = MOUSE_XBUTTON3 ; }
 	else if (Hlp_StrCmp(keyOpt, "MB4")) { optionKey = MOUSE_XBUTTON4 ; }
-	else if (Hlp_StrCmp(keyOpt, "MB5")) { optionKey = MOUSE_XBUTTON5 ; }
-	;
+	else if (Hlp_StrCmp(keyOpt, "MB5")) { optionKey = MOUSE_XBUTTON5 ; };
 
 	return +optionKey;
 };
