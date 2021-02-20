@@ -104,6 +104,21 @@ func void _Ninja_Quickloot_CNpc_SetFocusVob(var C_Npc npc, var int vobPtr) {
     };
 };
 
+func void _Ninja_Quickloot_oCNpc__CreatePassivePerception(var int thisPtr, var int perc, var int otherPtr, var int victimPtr) {
+	if (GOTHIC_BASE_VERSION != 2) { return; };
+	const int oCNpc__CreatePassivePerception_G2 = 7713392; // 0075b270
+
+	const int call = 0;
+    if (CALL_Begin(call)) {
+        CALL_PtrParam(_@(victimPtr));
+        CALL_PtrParam(_@(otherPtr));
+        CALL_PtrParam(_@(perc));
+        CALL__thiscall(_@(thisPtr), MEMINT_SwitchG1G2 (0, oCNpc__CreatePassivePerception_G2));
+
+        call = CALL_End();
+    };
+};
+
 func void _Ninja_Quickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var int perc) {
 	// Not supported in Gothic 1.
 	if (GOTHIC_BASE_VERSION != 2) { return; };
@@ -122,7 +137,7 @@ func void _Ninja_Quickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var i
 		oTaker.rbt_obstVob = vobPtr;
 	};
 	// Sends perception to all surrounding NPCs
-	Npc_SendPassivePerc(oTaker, perc, oTaker, NULL);
+	_Ninja_Quickloot_oCNpc__CreatePassivePerception(_@(oTaker), perc, _@(oTaker), 0);
 	item = MEM_CpyInst(itmOld);
 };
 
