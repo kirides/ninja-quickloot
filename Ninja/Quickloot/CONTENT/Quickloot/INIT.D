@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.9"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.10"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
