@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.11"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.12"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -20,6 +20,7 @@ const int _Ninja_Quickloot_Print_Count = 0;
 // Used to make Prints always start at the "Top"
 const int _Ninja_Quickloot_Print_Timer = 0;
 const int _Ninja_Quickloot_Print_Duration = 3000;
+const int _Ninja_Quickloot_Print_Duration_Total = 3700;
 const int _Ninja_Quickloot_Print_UseAnimation = 0;
 const string Ninja_Quickloot_Print_Font = "FONT_OLD_10_WHITE.TGA"; // <-- PF_Font
 
@@ -221,20 +222,22 @@ func void _Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
     var string itemName;
     
     var int slotNr;
-    repeat (i,INV_CAT_MAX); var int i;
+	if (GOTHIC_BASE_VERSION == 2) {
+		// Gothic 2 lies to you about categories got NPC_GetInvItemBySlot.
+		// It only looks in a global inventory without respecting the category
 		slotNr = 0;
 		while (1); // Loop all items, until category is empty/item is invalid
-			amount = NPC_GetInvItemBySlot(_owner, i, slotNr);
+			amount = NPC_GetInvItemBySlot(_owner, ITEM_KAT_NONE, slotNr);
 			if (amount == 0) { break; };
-			if (!Hlp_IsValidItem(Item)) { break; };
-            
-            itmID = Hlp_GetInstanceID(Item);
-            if (item.flags & ITEM_KAT_ARMOR) {
+			if (!Hlp_IsValidItem(item)) { break; };
+			
+			itmID = Hlp_GetInstanceID(item);
+			if (item.flags & ITEM_KAT_ARMOR) {
 				slotNr += 1;
 				continue;
 			};
 			// For now, also loot equipped stuff.
-            // if (item.flags & ITEM_ACTIVE_LEGO) {
+			// if (item.flags & ITEM_ACTIVE_LEGO) {
 			// 	slotNr += 1;
 			// 	continue;
 			// };
@@ -249,7 +252,37 @@ func void _Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
 				Npc_RemoveInvItems (_owner, itmID, amount);
 			};
 		end;
-	end;
+	} else {
+		repeat (i,INV_CAT_MAX); var int i;
+			slotNr = 0;
+			while (1); // Loop all items, until category is empty/item is invalid
+				amount = NPC_GetInvItemBySlot(_owner, i, slotNr);
+				if (amount == 0) { break; };
+				if (!Hlp_IsValidItem(item)) { break; };
+				
+				itmID = Hlp_GetInstanceID(item);
+				if (item.flags & ITEM_KAT_ARMOR) {
+					slotNr += 1;
+					continue;
+				};
+				// For now, also loot equipped stuff.
+				// if (item.flags & ITEM_ACTIVE_LEGO) {
+				// 	slotNr += 1;
+				// 	continue;
+				// };
+				if (amount > 0) {
+					itemName = item.description;
+					if (Hlp_StrCmp(itemName, "")) {
+						itemName = item.name;
+					};
+					_Ninja_Quickloot_PrintItem(itemName, amount);
+
+					CreateInvItems (_receiver, itmID, amount);
+					Npc_RemoveInvItems (_owner, itmID, amount);
+				};
+			end;
+		end;
+	};
 	// Damit die Funktion nicht mehrfach hintereinander ausgeführt wird.
 	_Ninja_Quickloot_CNpc_SetFocusVob(_receiver, 0);
 };
@@ -484,7 +517,7 @@ func void _Ninja_Quickloot_Loot() {
 	var int delay;
 	_Ninja_Quickloot_Print_Timer += MEM_Timer.frameTime;
 	// Reset the Print-Counter if not printed for X milliseconds
-	if (_Ninja_Quickloot_Print_Timer > _Ninja_Quickloot_Print_Duration) {
+	if (_Ninja_Quickloot_Print_Timer > _Ninja_Quickloot_Print_Duration_Total) {
 		_Ninja_Quickloot_Print_Count_Limit_Current = 0;
 		_Ninja_Quickloot_Print_Count = 0;
 		_Ninja_Quickloot_Print_Timer = 0;
@@ -640,6 +673,11 @@ func void Ninja_Quickloot_Init_Options() {
 	if (_Ninja_Quickloot_Print_AnimSpeed <= 0 || _Ninja_Quickloot_Print_AnimSpeed >= 2000) {
 		_Ninja_Quickloot_Print_AnimSpeed = 700;
 	};
+	if (_Ninja_Quickloot_Print_UseAnimation) {
+		_Ninja_Quickloot_Print_Duration_Total = _Ninja_Quickloot_Print_Duration + _Ninja_Quickloot_Print_AnimSpeed;
+	} else {
+		_Ninja_Quickloot_Print_Duration_Total = _Ninja_Quickloot_Print_Duration;
+	};
 
 	if (animated) {
 		const int _UpdatePlayerStatus_PrintFocusName_G1 = 6526632; /* 006396A8 */
@@ -651,96 +689,9 @@ func void Ninja_Quickloot_Init_Options() {
 			8,
 			_Ninja_Quickloot_Set_AnimStart);
 		// Workaround for wrong "invalid pointer" check
-		HookDaedalusFunc(_Anim8_Loop, _Ninja_Quickloot_Anim8_Loop_WorkAround);
 	};
 };
 
-func int _Ninja_Quickloot_Anim8_Loop_WorkAround(var int hndl) {
-    var A8Head h; h = get(hndl);
-    if(!h.queue) {
-        return rContinue;
-    };
-
-    if(!List_HasLength(h.queue, 2)) {
-        return rContinue;
-    };
-
-    var int ldata; ldata = List_Get(h.queue, 2);
-    if(!ldata) {
-        List_Delete(h.queue, 2);
-        return rContinue;
-    };
-
-    var A8Command c; c = get(ldata);
-
-    // Eigentliche Interpolierung
-    var int t; t = mkf(TimerGT() - c.startTime);
-
-    if(c.interpol&&c.interpol < A8_Wait) {
-        if(c.interpol == A8_Constant) {
-            // s = v*t;
-            h.value = mulf(c.velo, t);
-        }
-        else if(c.interpol == A8_SlowEnd) {
-            // s = a/2*t^2 + v0*t
-            h.value = addf(mulf(mulf(c.velo, floatHalb), mulf(t, t)), mulf(c.startV, t));
-        }
-        else if(c.interpol == A8_SlowStart) {
-            // s = a/2*t^2
-            h.value = mulf(mulf(c.velo, floatHalb), mulf(t, t));
-        };
-        h.value = addf(c.startVal, h.value);
-    };
-
-    if(gef(t, c.timeSpan)) {
-        if(c.interpol != A8_Wait) {
-            h.value = c.target;
-        };
-    };
-
-    if(h.fnc) {
-        if(h.data) {
-            h.data;
-        };
-        if(h.flt) {
-            h.value;
-        }
-        else {
-            roundf(h.value);
-        };
-        MEM_CallByPtr(h.fnc);
-        // Might have been deleted just now
-        if (!Hlp_IsValidHandle(hndl)) {
-            return rContinue;
-        };
-    };
-
-    if(gef(t, c.timeSpan)) {
-        delete(ldata);
-        List_Delete(h.queue, 2);
-        // ggf. Liste aktualisieren
-        if(List_HasLength(h.queue, 2)) {
-            ldata = List_Get(h.queue, 2);
-            if(!ldata) {
-                List_Delete(h.queue, 2);
-                return rContinue;
-            };
-            c = get(ldata);
-            c.startVal = h.value;
-            c.startTime = TimerGT();
-            _Anim8_SetVelo(h, c);
-        }
-        else if(h.dif) {
-            if(h.ddif) {
-                if(h.data) {
-                    delete(h.data);
-                };
-            };
-            delete(hndl);
-        };
-    };
-    return rContinue;
-};
 /// Init-function called by Ninja
 func void Ninja_Quickloot_Init_Internal() {
 	MEM_Info(ConcatStrings(ConcatStrings("Initialize ", NINJA_QUICKLOOT_VERSION), "."));
