@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.8.12"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -655,7 +655,7 @@ func string Ninja_Quickloot_GetOpt(var string optName, var string defaultVal) {
 };
 
 func void Ninja_Quickloot_Init_Options() {
-	Ninja_Quickloot_Print_Font = "Ninja_QuickLoot_Font_DE.tga";
+	Ninja_Quickloot_Print_Font = Ninja_Quickloot_GetOpt("Font", "Ninja_QuickLoot_Font_DE.tga");
 	_Ninja_Quickloot_LootKey = Ninja_Quickloot_ReadOptKey();
 
 	_Ninja_Quickloot_Received_Prefix = Ninja_Quickloot_GetOpt("Prefix", "Erhalten:");
