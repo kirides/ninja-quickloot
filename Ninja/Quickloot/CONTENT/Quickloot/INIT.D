@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9.1"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -105,24 +105,10 @@ func void _Ninja_Quickloot_CNpc_SetFocusVob(var C_Npc npc, var int vobPtr) {
     };
 };
 
-func void _Ninja_Quickloot_oCNpc__CreatePassivePerception(var int thisPtr, var int perc, var int otherPtr, var int victimPtr) {
-	if (GOTHIC_BASE_VERSION != 2) { return; };
-	const int oCNpc__CreatePassivePerception_G2 = 7713392; // 0075b270
-
-	const int call = 0;
-    if (CALL_Begin(call)) {
-        CALL_PtrParam(_@(victimPtr));
-        CALL_PtrParam(_@(otherPtr));
-        CALL_PtrParam(_@(perc));
-        CALL__thiscall(_@(thisPtr), MEMINT_SwitchG1G2 (0, oCNpc__CreatePassivePerception_G2));
-
-        call = CALL_End();
-    };
-};
-
 func void _Ninja_Quickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var int perc) {
 	// Not supported in Gothic 1.
 	if (GOTHIC_BASE_VERSION != 2) { return; };
+	if (!vobPtr) { return; };
 
 	var oCNpc oTaker; oTaker = Hlp_GetNpc(taker);
     var C_ITEM itmOld;
@@ -135,10 +121,14 @@ func void _Ninja_Quickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var i
 	};
 	if (perc == PERC_ASSESSUSEMOB) {
 		// Set obstVob variable. NPC will react to action with this.
+		if (!Hlp_Is_oCMobInter(vobPtr)) {
+			return;
+		};
 		oTaker.rbt_obstVob = vobPtr;
 	};
 	// Sends perception to all surrounding NPCs
-	_Ninja_Quickloot_oCNpc__CreatePassivePerception(_@(oTaker), perc, _@(oTaker), 0);
+	// this creates a zSPY warning about invalid "victim" but that's fine!
+	Npc_SendPassivePerc(taker, perc, taker, NULL);
 	item = MEM_CpyInst(itmOld);
 };
 
