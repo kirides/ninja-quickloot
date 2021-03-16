@@ -422,8 +422,8 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 				return;
 			};
 		};
+		lockable = MEM_NullToInst();
 	};
-	lockable = MEM_NullToInst();
 
 	var int nodePtr; nodePtr = container.containList_next;
 	var zCListSort node;
