@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9.1"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9.2"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -207,6 +207,13 @@ func int _Ninja_Quickloot_NpcHasValidBodyState(var oCNPC npc) {
 
 // https://forum.worldofplayers.de/forum/threads/1337194-Gothic-2-Script-that-transfers-NPCs-inventory-to-hero?p=22540061&viewfull=1#post22540061
 func void _Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
+	// Globales ITEM speichern und zurücksetzen am Ende
+	var C_ITEM itmOld;
+	if (Hlp_IsValidItem(item)) { itmOld = MEM_CpyInst(item); }
+	else                       { itmOld = MEM_NullToInst();  };
+
+	if (final())               { item = MEM_CpyInst(itmOld); };
+
     var int amount;
     var int itmID; 
     var string itemName;
@@ -385,6 +392,12 @@ func void _Ninja_Quickloot_Mob_RemoveAllItems(var int containerAddress) {
 };
 
 func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) {
+	var oCMobContainer container; container = MEM_PtrToInst(containerPtr);
+	if (!_Ninja_Quickloot_Container_ConditionFunc(container)) {
+		_Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
+		return;
+	};
+
 	if (Hlp_Is_oCMobLockable(containerPtr)) {
 		var oCMobLockable lockable; lockable = MEM_PtrToInst(containerPtr);
 		const int _oCMobLockable_bitfield_autoOpen = ((1 <<  1) - 1) << 1;
@@ -411,11 +424,6 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 		};
 	};
 	lockable = MEM_NullToInst();
-	var oCMobContainer container; container = MEM_PtrToInst(containerPtr);
-	if (!_Ninja_Quickloot_Container_ConditionFunc(container)) {
-		_Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
-		return;
-	};
 
 	var int nodePtr; nodePtr = container.containList_next;
 	var zCListSort node;
