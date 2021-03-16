@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9.2"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9.3"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -312,7 +312,10 @@ func int _Ninja_Quickloot_Container_ConditionFunc(var oCMobContainer container) 
 
 	var int symId; symId = MEM_FindParserSymbol(container._oCMobInter_conditionFunc);
 	if (symId != -1) {
+		var C_NPC oldSlf; oldSlf = MEM_CpyInst(self);
+		self = MEM_CpyInst(hero);
 		MEM_CallByID(symId);
+		self = MEM_CpyInst(oldSlf);
 		return +MEM_PopIntResult();
 	};
 
@@ -322,10 +325,10 @@ func int _Ninja_Quickloot_Container_ConditionFunc(var oCMobContainer container) 
 func void _Ninja_Quickloot_Container_OnState(var string state, var int stateNo) {
 	var int symId; symId = MEM_FindParserSymbol(ConcatStrings(state, ConcatStrings("_S", IntToString(stateNo))));
 	if (symId != -1) {
-		var C_NPC oldSlf; oldSlf = Hlp_GetNpc(self);
-		self = Hlp_GetNpc(hero);
+		var C_NPC oldSlf; oldSlf = MEM_CpyInst(self);
+		self = MEM_CpyInst(hero);
 		MEM_CallByID(symId);
-		self = Hlp_GetNpc(oldSlf);
+		self = MEM_CpyInst(oldSlf);
 		oldSlf = MEM_NullToInst();
 	};
 };
