@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9.3"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9.4"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -22,6 +22,7 @@ const int _Ninja_Quickloot_Print_Timer = 0;
 const int _Ninja_Quickloot_Print_Duration = 3000;
 const int _Ninja_Quickloot_Print_Duration_Total = 3700;
 const int _Ninja_Quickloot_Print_UseAnimation = 0;
+const int _Ninja_Quickloot_Print_UsePatchFont = 0;
 const string Ninja_Quickloot_Print_Font = "FONT_OLD_10_WHITE.TGA"; // <-- PF_Font
 
 const int _Ninja_Quickloot_Print_Count_Limit_Current = 0;
@@ -656,7 +657,10 @@ func string Ninja_Quickloot_GetOpt(var string optName, var string defaultVal) {
 };
 
 func void Ninja_Quickloot_Init_Options() {
-	Ninja_Quickloot_Print_Font = Ninja_Quickloot_GetOpt("Font", "Ninja_QuickLoot_Font_DE.tga");
+	_Ninja_Quickloot_Print_UsePatchFont = STR_ToInt(Ninja_Quickloot_GetOpt("UsePatchFont", "0"));
+	if (_Ninja_Quickloot_Print_UsePatchFont != 0) {
+		Ninja_Quickloot_Print_Font = Ninja_Quickloot_GetOpt("Font", "Ninja_QuickLoot_Font_DE.tga");
+	};
 	_Ninja_Quickloot_LootKey = Ninja_Quickloot_ReadOptKey();
 
 	_Ninja_Quickloot_Received_Prefix = Ninja_Quickloot_GetOpt("Prefix", "Erhalten:");
