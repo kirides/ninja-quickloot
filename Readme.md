@@ -20,7 +20,6 @@ https://github.com/szapp/Ninja/wiki/Installation-(DE)#wiki-wrapper
 _Dies ist eine Verlinkung auf den offiziellen Wiki Artikel zu der Instatllation von Ninja_
 
 Nach dem ersten Start des Spiels werden in der `Gothic.ini` neue Einträge unter der Sektion `NINJA_QUICKLOOT` angelegt.  
-Dort kann auch die Taste für das Quicklooten eingestellt werden. (`A` bit `Z` oder `RMB` = Rechte Maustaste) 
 
 ```ini
 [NINJA_QUICKLOOT]
@@ -28,9 +27,16 @@ Key=RMB
 Prefix=Erhalten:
 UseAnimations=1
 AnimSpeed=700
+
 # try using FONT_OLD_10_WHITE.TGA if you need russian/polish etc. texts
+UsePatchFont=0
 Font=Ninja_QuickLoot_Font_DE.tga
 ```
+
+Über das Spiel Menü im Bereich Steuerung kann für "Quickloot (Patch)" entsprechend die Taste(n) belegt werden.  
+Stanadard:
+- G2: `MAUS RECHTS`
+- G1: `V`
 
 ----
 
