@@ -27,6 +27,8 @@ const int PATCH_QUICKLOOT_ITEM_KAT_NONE     =  1; // ITEM_KAT_NONE  ( 1 << 0)
 const int PATCH_QUICKLOOT_ITEM_KAT_ARMOR    = 16; // ITEM_KAT_ARMOR ( 1 << 4)
 const int PATCH_QUICKLOOT_INV_CAT_MAX       =  9; // INV_CAT_MAX
 
+const int PATCH_QUICKLOOT_LOCALE    =  0; // (0 = EN, 1 = DE, 2 = PL, 3 = RU)
+
 func string Ninja_Quickloot_GetOpt(var string optName, var string defaultVal) {
 	const string INI_SECTION = "NINJA_QUICKLOOT";
 	var string concatText; concatText = "";

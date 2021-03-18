@@ -102,6 +102,43 @@ func void Ninja_Quickloot_ArrayInsertAtPos(var int zCArray_ptr,
 
 
 /*
+ * Guess localization (0 = EN, 1 = DE, 2 = PL, 3 = RU)
+ * Source: https://github.com/szapp/Ninja/wiki/Inject-Changes#localization
+ */
+func int Ninja_Quickloot_GuessLocalization() { // Adjust the name!
+	MEM_InitAll();
+    var int pan; pan = MEM_GetSymbol("MOBNAME_PAN");
+    if (pan) {
+        var zCPar_Symbol panSymb; panSymb = _^(pan);
+        var string panName; panName = MEM_ReadString(panSymb.content);
+        if (Hlp_StrCmp(panName, "Pfanne")) { // DE (Windows 1252)
+            return 1;
+        } else if (Hlp_StrCmp(panName, "Patelnia")) { // PL (Windows 1250)
+            return 2;
+        } else if (Hlp_StrCmp(panName, "Сковорода")) { // RU (Windows 1251)
+            return 3;
+        };
+    };
+    return 0; // Otherwise EN
+};
+
+func void Ninja_Quickloot_LocalizeKeyBinding(var int menuKey, var int menuInp) {
+    var zCMenuItem itmKey; itmKey = _^(menuKey);
+    var zCMenuItem itmInp; itmInp = _^(menuInp);
+    
+    if (PATCH_QUICKLOOT_LOCALE == 0 /* EN */) {
+        itmKey.m_parText[1] = "Press DEL to remove and ENTER to define a key.";
+        itmInp.m_parText[1] = "Press the desired key.";
+    } else if (PATCH_QUICKLOOT_LOCALE == 2 /* PL */) {
+        itmKey.m_parText[1] = "DEL - usuwa, ENTER - przypisuje klawisz.";
+        itmInp.m_parText[1] = "Naciњnij ї№dany klawisz.";
+    } else if (PATCH_QUICKLOOT_LOCALE == 3 /* RU */) {
+        itmKey.m_parText[1] = "Кнопка удалить Удалить и вернуться к определению";
+        itmInp.m_parText[1] = "Нажмите нужную клавишу.";
+    };
+};
+
+/*
  * Menu initialization function called by Ninja every time a menu is opened
  * Source: https://github.com/szapp/Ninja/wiki/Inject-Changes
  */
@@ -110,6 +147,7 @@ func void Ninja_Quickloot_Menu(var int menuPtr) { // Adjust name
     MEM_InitAll();
 	const int once = 1;
 	if (once) {
+        PATCH_QUICKLOOT_LOCALE = Ninja_Quickloot_GuessLocalization();
 		Ninja_Quickloot_Init_Options();
 		once = 0;
 	};
@@ -133,6 +171,7 @@ func void Ninja_Quickloot_Menu(var int menuPtr) { // Adjust name
             var zCMenuItem itm;
             itm1 = Ninja_Quickloot_CreateMenuItem(itm1Str);
             itm2 = Ninja_Quickloot_CreateMenuItem(itm2Str);
+            Ninja_Quickloot_LocalizeKeyBinding(itm1, itm2);
 
             // Copy properties of first key binding entry (left column)
             var int itmF_left; itmF_left = MEM_ArrayRead(items, 1);
