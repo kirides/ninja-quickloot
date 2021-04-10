@@ -56,11 +56,15 @@ func void _Ninja_Quickloot_PrintLootExt(var string text, var int anim) {
 	if (STR_Len(Ninja_Quickloot_Print_Font) == 0) { return; };
 
 	if (_Ninja_Quickloot_Print_Count >= _Ninja_Quickloot_Print_Count_Max) { _Ninja_Quickloot_Print_Count = 0; };
+	// restart from top if text would be out-of-bounds (Y-coords)
+	if ((_Ninja_Quickloot_Print_Y + (_Ninja_Quickloot_Print_TextHeight * _Ninja_Quickloot_Print_Count) + _Ninja_Quickloot_Print_TextHeight) >= PS_VMax) {
+		_Ninja_Quickloot_Print_Count = 0;
+	};
 
 	if (anim) {
-		_Ninja_Quickloot_PrintLoot_Anim(text, _Ninja_Quickloot_Set_AnimStart_X, _Ninja_Quickloot_Set_AnimStart_Y, _Ninja_Quickloot_Print_TextHeight, PS_VMax / 2 + (_Ninja_Quickloot_Print_TextHeight * _Ninja_Quickloot_Print_Count));
+		_Ninja_Quickloot_PrintLoot_Anim(text, _Ninja_Quickloot_Set_AnimStart_X, _Ninja_Quickloot_Set_AnimStart_Y, _Ninja_Quickloot_Print_X, _Ninja_Quickloot_Print_Y + (_Ninja_Quickloot_Print_TextHeight * _Ninja_Quickloot_Print_Count));
 	} else {
-		Print_Ext(_Ninja_Quickloot_Print_TextHeight, PS_VMax / 2 + (_Ninja_Quickloot_Print_TextHeight * _Ninja_Quickloot_Print_Count), text, Ninja_Quickloot_Print_Font, COL_White, _Ninja_Quickloot_Print_Duration);
+		Print_Ext(_Ninja_Quickloot_Print_X, _Ninja_Quickloot_Print_Y + (_Ninja_Quickloot_Print_TextHeight * _Ninja_Quickloot_Print_Count), text, Ninja_Quickloot_Print_Font, COL_White, _Ninja_Quickloot_Print_Duration);
 	};
 
 	_Ninja_Quickloot_Print_Count += 1;

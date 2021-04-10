@@ -17,6 +17,10 @@ const int _Ninja_Quickloot_Print_TextHeight    = 150;
 const int _Ninja_Quickloot_Print_AnimSpeed = 700;
 const int _Ninja_Quickloot_Set_AnimStart_X = 4096;
 const int _Ninja_Quickloot_Set_AnimStart_Y = 4096;
+
+const int _Ninja_Quickloot_Print_X = 150;
+const int _Ninja_Quickloot_Print_Y = 4096; // PS_VMax / 2
+
 const string _Ninja_Quickloot_Received_Prefix = "Erhalten: ";
 
 // Constants that might not exists in Mods.
@@ -53,13 +57,28 @@ func string Ninja_Quickloot_GetOpt(var string optName, var string defaultVal) {
 	return optValue;
 };
 
+func string Ninja_Quickloot_SetOpt(var string optName, var string optValue) {
+	const string INI_SECTION = "NINJA_QUICKLOOT";
+	var string concatText; concatText = "";
+	MEM_SetGothOpt(INI_SECTION, optName, optValue);
+	
+	concatText = ConcatStrings(concatText, "    SET: ");
+	concatText = ConcatStrings(concatText, optName);
+	concatText = ConcatStrings(concatText, ": ");
+	concatText = ConcatStrings(concatText, optValue);
+	MEM_Info(concatText);
+
+	return optValue;
+};
+
+func int _Ninja_Quickloot_IntInRangeDefault(var int v, var int min, var int max, var int def) {
+	if ((v < min) || (v > max)) {
+		return +def;
+	};
+	return +v;
+};
+
 func void Ninja_Quickloot_Init_Options() {
-	_Ninja_Quickloot_Print_UsePatchFont = STR_ToInt(Ninja_Quickloot_GetOpt("UsePatchFont", "0"));
-	if (_Ninja_Quickloot_Print_UsePatchFont != 0) {
-		Ninja_Quickloot_Print_Font = Ninja_Quickloot_GetOpt("Font", "Ninja_QuickLoot_Font_DE.tga");
-	} else {
-        Ninja_Quickloot_GetOpt("Font", "Ninja_QuickLoot_Font_DE.tga");
-    };
     if (!MEM_GothOptExists("KEYS", "keyPatchQuickloot")) {
 		if (GOTHIC_BASE_VERSION == 2) { MEM_SetGothOpt("KEYS", "keyPatchQuickloot", "0d02" /* 525 -> RMB, MOUSE_BUTTONRIGHT */); }
         else                          { MEM_SetGothOpt("KEYS", "keyPatchQuickloot", "2f00" /* 47, KEY_V */                    ); };
@@ -69,6 +88,12 @@ func void Ninja_Quickloot_Init_Options() {
 	if (!Hlp_StrCmp(_Ninja_Quickloot_Received_Prefix, "")) {
 		_Ninja_Quickloot_Received_Prefix = ConcatStrings(_Ninja_Quickloot_Received_Prefix, " ");
 	};
+
+	_Ninja_Quickloot_Print_X = _Ninja_Quickloot_IntInRangeDefault(STR_ToInt(Ninja_Quickloot_GetOpt("PrintX", "150")), 0, PS_VMax, 150);
+	Ninja_Quickloot_SetOpt("PrintX", IntToString(_Ninja_Quickloot_Print_X));
+
+	_Ninja_Quickloot_Print_Y = _Ninja_Quickloot_IntInRangeDefault(STR_ToInt(Ninja_Quickloot_GetOpt("PrintY", "4096")), 0, PS_VMax, 4096);
+	Ninja_Quickloot_SetOpt("PrintY", IntToString(_Ninja_Quickloot_Print_Y));
 
 	var int animated; animated = STR_ToInt(Ninja_Quickloot_GetOpt("UseAnimations", "1"));
 	if (animated) {
@@ -80,6 +105,14 @@ func void Ninja_Quickloot_Init_Options() {
 	if (_Ninja_Quickloot_Print_AnimSpeed <= 0 || _Ninja_Quickloot_Print_AnimSpeed >= 2000) {
 		_Ninja_Quickloot_Print_AnimSpeed = 700;
 	};
+
+	_Ninja_Quickloot_Print_UsePatchFont = STR_ToInt(Ninja_Quickloot_GetOpt("UsePatchFont", "0"));
+	if (_Ninja_Quickloot_Print_UsePatchFont != 0) {
+		Ninja_Quickloot_Print_Font = Ninja_Quickloot_GetOpt("Font", "Ninja_QuickLoot_Font_DE.tga");
+	} else {
+        Ninja_Quickloot_GetOpt("Font", "Ninja_QuickLoot_Font_DE.tga");
+    };
+
 	if (_Ninja_Quickloot_Print_UseAnimation) {
 		_Ninja_Quickloot_Print_Duration_Total = _Ninja_Quickloot_Print_Duration + _Ninja_Quickloot_Print_AnimSpeed;
 	} else {
