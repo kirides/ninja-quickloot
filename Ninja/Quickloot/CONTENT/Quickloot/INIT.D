@@ -34,8 +34,8 @@ func void _Ninja_Quickloot_AnimMoveY(var int MyText, var int Position) {
 	};
 };
 
-func void _Ninja_Quickloot_PrintLoot_Anim(var string text, var int startX, var int startY, var int stopX, var int stopY) {
-	var int MyText;    MyText    = Print_Ext(startX, startY, text, Ninja_Quickloot_Print_Font, COL_White, -1);
+func void _Ninja_Quickloot_PrintLoot_Anim(var string text, var int startX, var int startY, var int stopX, var int stopY, var int color) {
+	var int MyText;    MyText    = Print_Ext(startX, startY, text, Ninja_Quickloot_Print_Font, color, -1);
     var int MyAnim8_X; MyAnim8_X = Anim8_NewExt(startX, _Ninja_Quickloot_AnimMoveX, MyText, FALSE);
     var int MyAnim8_Y; MyAnim8_Y = Anim8_NewExt(startY, _Ninja_Quickloot_AnimMoveY, MyText, FALSE);
 
@@ -48,7 +48,7 @@ func void _Ninja_Quickloot_PrintLoot_Anim(var string text, var int startX, var i
 	Anim8_RemoveIfEmpty(MyAnim8_Y, TRUE);                                    // only clean Anim
 };
 
-func void _Ninja_Quickloot_PrintLootExt(var string text, var int anim) {
+func void _Ninja_Quickloot_PrintLootExt(var string text, var int anim, var int color) {
     const int _Ninja_Quickloot_Print_Count_Limit = 30;
 
 	if (_Ninja_Quickloot_Print_Count_Limit_Current > _Ninja_Quickloot_Print_Count_Limit) { return; };
@@ -62,18 +62,14 @@ func void _Ninja_Quickloot_PrintLootExt(var string text, var int anim) {
 	};
 
 	if (anim) {
-		_Ninja_Quickloot_PrintLoot_Anim(text, _Ninja_Quickloot_Set_AnimStart_X, _Ninja_Quickloot_Set_AnimStart_Y, _Ninja_Quickloot_Print_X, _Ninja_Quickloot_Print_Y + (_Ninja_Quickloot_Print_TextHeight * _Ninja_Quickloot_Print_Count));
+		_Ninja_Quickloot_PrintLoot_Anim(text, _Ninja_Quickloot_Set_AnimStart_X, _Ninja_Quickloot_Set_AnimStart_Y, _Ninja_Quickloot_Print_X, _Ninja_Quickloot_Print_Y + (_Ninja_Quickloot_Print_TextHeight * _Ninja_Quickloot_Print_Count), color);
 	} else {
-		Print_Ext(_Ninja_Quickloot_Print_X, _Ninja_Quickloot_Print_Y + (_Ninja_Quickloot_Print_TextHeight * _Ninja_Quickloot_Print_Count), text, Ninja_Quickloot_Print_Font, COL_White, _Ninja_Quickloot_Print_Duration);
+		Print_Ext(_Ninja_Quickloot_Print_X, _Ninja_Quickloot_Print_Y + (_Ninja_Quickloot_Print_TextHeight * _Ninja_Quickloot_Print_Count), text, Ninja_Quickloot_Print_Font, color, _Ninja_Quickloot_Print_Duration);
 	};
 
 	_Ninja_Quickloot_Print_Count += 1;
 	_Ninja_Quickloot_Print_Timer = 0;
 	_Ninja_Quickloot_Print_Count_Limit_Current +=1;
-};
-
-func void _Ninja_Quickloot_PrintLoot(var string text) { 
-	_Ninja_Quickloot_PrintLootExt(text, FALSE);
 };
 
 func void _Ninja_Quickloot_CNpc_SetFocusVob(var C_Npc npc, var int vobPtr) {
@@ -121,7 +117,22 @@ func void _Ninja_Quickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var i
 	item = MEM_CpyInst(itmOld);
 };
 
-func void _Ninja_Quickloot_PrintItem(var string name, var int amount) {
+func int _Ninja_Quickloot_ColorForRarity(var int rarity) {
+	if (!_Ninja_Quickloot_Print_UseColors) {
+		return COL_White;
+	};
+	if      (rarity == PATCH_QUICKLOOT_RARITY_RARE)   { return PATCH_QUICKLOOT_COLOR_RARE; }
+	else if (rarity == PATCH_QUICKLOOT_RARITY_GOLD)   { return PATCH_QUICKLOOT_COLOR_GOLD; }
+	else if (rarity == PATCH_QUICKLOOT_RARITY_QUEST)  { return PATCH_QUICKLOOT_COLOR_QUEST; }
+	else if (rarity == PATCH_QUICKLOOT_RARITY_WEAPON) { return PATCH_QUICKLOOT_COLOR_WEAPON; }
+	else if (rarity == PATCH_QUICKLOOT_RARITY_FOOD)   { return PATCH_QUICKLOOT_COLOR_FOOD; }
+	else if (rarity == PATCH_QUICKLOOT_RARITY_COMMON) { return PATCH_QUICKLOOT_COLOR_COMMON; }
+	;
+	return PATCH_QUICKLOOT_COLOR_NONE;
+};
+
+func void _Ninja_Quickloot_PrintItem(var string name, var int amount, var int rarity) {
+	var int color; color = _Ninja_Quickloot_ColorForRarity(rarity);
 	if (amount > 1) {
 		_Ninja_Quickloot_PrintLootExt(
 			ConcatStrings(
@@ -130,12 +141,12 @@ func void _Ninja_Quickloot_PrintItem(var string name, var int amount) {
 					ConcatStrings(IntToString(amount) , "x "),
 					name
 				)
-			), _Ninja_Quickloot_Print_UseAnimation
+			), _Ninja_Quickloot_Print_UseAnimation, color
 		);
 	} else {
 		_Ninja_Quickloot_PrintLootExt(
 			ConcatStrings(_Ninja_Quickloot_Received_Prefix, name),
-			_Ninja_Quickloot_Print_UseAnimation
+			_Ninja_Quickloot_Print_UseAnimation, color
 		);
 	};
 };
@@ -157,6 +168,33 @@ func void _Ninja_Quickloot_World_DisableVob(var int vobPtr) {
     };
 };
 
+func int _Ninja_Quickloot_RarityForItem(var C_ITEM itm) {
+	const int _ITEM_KAT_NF      = 1 <<  1; // ITEM_KAT_NF
+	const int _ITEM_KAT_FF      = 1 <<  2; // ITEM_KAT_FF
+	const int _ITEM_KAT_MUN     = 1 <<  3; // ITEM_KAT_MUN
+	const int _ITEM_KAT_FOOD    = 1 <<  5; // ITEM_KAT_FOOD
+	const int _ITEM_KAT_POTIONS = 1 <<  7; // ITEM_KAT_POTIONS
+	const int _ITEM_KAT_RUNE    = 1 <<  9; // ITEM_KAT_RUNE
+	const int _ITEM_MISSION     = 1 << 12; // ITEM_MISSION
+	
+	if      (itm.flags & _ITEM_MISSION) { return PATCH_QUICKLOOT_RARITY_QUEST;  }
+	else if (itm.flags & _ITEM_KAT_NF)  { return PATCH_QUICKLOOT_RARITY_WEAPON; }
+	else if (itm.flags & _ITEM_KAT_FF)  { return PATCH_QUICKLOOT_RARITY_WEAPON; }
+	else if (itm.flags & _ITEM_KAT_MUN) { return PATCH_QUICKLOOT_RARITY_COMMON; };
+
+	if (itm.value >= PATCH_QUICKLOOT_ITEM_EXPENSIVE) { return PATCH_QUICKLOOT_RARITY_RARE; };
+
+	if      (itm.flags & _ITEM_KAT_FOOD)    { return PATCH_QUICKLOOT_RARITY_FOOD;   }
+	else if (itm.flags & _ITEM_KAT_POTIONS) { return PATCH_QUICKLOOT_RARITY_FOOD;   }
+	else if (itm.flags & _ITEM_KAT_RUNE)    { return PATCH_QUICKLOOT_RARITY_NONE;   };
+
+	if (Hlp_GetInstanceId(itm) == PATCH_QUICKLOOT_INDEX_MONEY) { return PATCH_QUICKLOOT_RARITY_GOLD; };
+
+	if (itm.value <= 10)    { return PATCH_QUICKLOOT_RARITY_COMMON; };
+
+	return PATCH_QUICKLOOT_RARITY_NONE;
+};
+
 func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {	
     var oCItem targetItem; targetItem = MEM_PtrToInst(itemPtr);
     if (!Hlp_IsValidItem(targetItem)) { return; };
@@ -167,6 +205,9 @@ func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
         itemName = targetItem.name;
     };
     var int itmID; itmID = Hlp_GetInstanceID(targetItem);
+	var C_ITEM itm; itm = MEM_PtrToInst(itemPtr);
+	var int itemRarity; itemRarity = _Ninja_Quickloot_RarityForItem(itm);
+	// MEM_Info(ConcatStrings("Rarity for ", ConcatStrings(itm.description, ConcatStrings(": ", IntToString(itemRarity)))));
 
     _Ninja_Quickloot_PerceiveAction(taker, itemPtr, PATCH_QUICKLOOT_PERC_ASSESSTHEFT);
 
@@ -178,7 +219,7 @@ func void _Ninja_Quickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
 
     // Remove the Item from focus.
     _Ninja_Quickloot_CNpc_SetFocusVob(taker, 0);
-    _Ninja_Quickloot_PrintItem(itemName, itemAmount);		
+    _Ninja_Quickloot_PrintItem(itemName, itemAmount, itemRarity);		
 };
 
 func int _Ninja_Quickloot_NpcHasValidBodyState(var oCNPC npc) {
@@ -202,7 +243,7 @@ func void _Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
 	else                       { itmOld = MEM_NullToInst();  };
 
 	if (final())               { item = MEM_CpyInst(itmOld); };
-
+	var int itemRarity;
     var int amount;
     var int itmID; 
     var string itemName;
@@ -231,7 +272,9 @@ func void _Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
 				if (Hlp_StrCmp(itemName, "")) {
 					itemName = item.name;
 				};
-				_Ninja_Quickloot_PrintItem(itemName, amount);
+				itemRarity = _Ninja_Quickloot_RarityForItem(item);
+
+				_Ninja_Quickloot_PrintItem(itemName, amount, itemRarity);
 
 				CreateInvItems (_receiver, itmID, amount);
 				Npc_RemoveInvItems (_owner, itmID, amount);
@@ -261,7 +304,8 @@ func void _Ninja_Quickloot_LootNpc(var C_NPC _owner, var C_NPC _receiver){
 					if (Hlp_StrCmp(itemName, "")) {
 						itemName = item.name;
 					};
-					_Ninja_Quickloot_PrintItem(itemName, amount);
+					itemRarity = _Ninja_Quickloot_RarityForItem(item);
+					_Ninja_Quickloot_PrintItem(itemName, amount, itemRarity);
 
 					CreateInvItems (_receiver, itmID, amount);
 					Npc_RemoveInvItems (_owner, itmID, amount);
@@ -419,6 +463,7 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 
 	var int nodePtr; nodePtr = container.containList_next;
 	var zCListSort node;
+	var int itemRarity;
 
 	while(nodePtr);
 		node = MEM_PtrToInst(nodePtr);
@@ -432,9 +477,11 @@ func void _Ninja_Quickloot_LootContainer(var C_NPC taker, var int containerPtr) 
 			nodePtr = node.next;
 			continue;
 		};
+		var C_ITEM itm; itm = MEM_PtrToInst(node.data);
 
+		itemRarity = _Ninja_Quickloot_RarityForItem(itm);
 		CreateInvItems(taker, Hlp_GetInstanceId(oItem), oItem.amount);
-		_Ninja_Quickloot_PrintItem(oItem.description, oItem.amount);
+		_Ninja_Quickloot_PrintItem(oItem.description, oItem.amount, itemRarity);
 
 		nodePtr = node.next;
 	end;

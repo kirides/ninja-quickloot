@@ -8,7 +8,9 @@ const int _Ninja_Quickloot_Print_Duration = 3000;
 const int _Ninja_Quickloot_Print_Duration_Total = 3700;
 const int _Ninja_Quickloot_Print_UseAnimation = 0;
 const int _Ninja_Quickloot_Print_UsePatchFont = 0;
+const int _Ninja_Quickloot_Print_UseColors    = 0;
 const string Ninja_Quickloot_Print_Font = "FONT_OLD_10_WHITE.TGA"; // <-- PF_Font
+const string _Ninja_Quickloot_Item_Money = "ITMI_GOLD";
 
 const int _Ninja_Quickloot_Print_Count_Limit_Current = 0;
 
@@ -23,6 +25,25 @@ const int _Ninja_Quickloot_Print_Y = 4096; // PS_VMax / 2
 
 const string _Ninja_Quickloot_Received_Prefix = "Erhalten: ";
 
+const int PATCH_QUICKLOOT_ITEM_EXPENSIVE= 250;
+const int PATCH_QUICKLOOT_RARITY_NONE   = 0;
+const int PATCH_QUICKLOOT_RARITY_RARE   = 1;
+const int PATCH_QUICKLOOT_RARITY_GOLD   = 2;
+const int PATCH_QUICKLOOT_RARITY_QUEST  = 3;
+const int PATCH_QUICKLOOT_RARITY_WEAPON = 4;
+const int PATCH_QUICKLOOT_RARITY_FOOD   = 5;
+const int PATCH_QUICKLOOT_RARITY_COMMON = 6;
+
+const int PATCH_QUICKLOOT_COLOR_NONE   = (255<<16) | (255<<8) | (255<<0) | (255<<24); // #FFFFFF | COL_White
+const int PATCH_QUICKLOOT_COLOR_RARE   = (255<<16) | (165<<8) |            (255<<24); // #FFA500 | Orange
+const int PATCH_QUICKLOOT_COLOR_GOLD   = (255<<16) | (255<<8) |            (255<<24); // #FFFF00 | COL_Yellow
+const int PATCH_QUICKLOOT_COLOR_QUEST  =             (154<<8) | (255<<0) | (255<<24); // #009AFF | Light Blue
+const int PATCH_QUICKLOOT_COLOR_WEAPON = (211<<16) | (110<<8) | (112<<0) | (255<<24); // #d36e70 | Altrosa
+const int PATCH_QUICKLOOT_COLOR_FOOD   =             (204<<8) |            (255<<24); // #00cc00 | Caparol
+const int PATCH_QUICKLOOT_COLOR_COMMON = (204<<16) | (204<<8) | (204<<0) | (255<<24); // #cccccc |
+
+const int PATCH_QUICKLOOT_INDEX_MONEY   = -1;
+
 // Constants that might not exists in Mods.
 // Engine constants. Can not be adjusted by mods.
 const int PATCH_QUICKLOOT_PERC_ASSESSTHEFT  = 17; // PERC_ASSESSTHEFT
@@ -33,18 +54,17 @@ const int PATCH_QUICKLOOT_INV_CAT_MAX       =  9; // INV_CAT_MAX
 
 const int PATCH_QUICKLOOT_LOCALE    =  0; // (0 = EN, 1 = DE, 2 = PL, 3 = RU)
 
-func string Ninja_Quickloot_GetOpt(var string optName, var string defaultVal) {
-	const string INI_SECTION = "NINJA_QUICKLOOT";
+func string Ninja_Quickloot_GetOptSec(var string section, var string optName, var string defaultVal) {
 	var string concatText; concatText = "";
 	var string optValue;
 
-	if (!MEM_GothOptExists(INI_SECTION, optName)) {
-		MEM_SetGothOpt(INI_SECTION, optName, defaultVal);
+	if (!MEM_GothOptExists(section, optName)) {
+		MEM_SetGothOpt(section, optName, defaultVal);
 		return defaultVal;
 	};
-	optValue = MEM_GetGothOpt(INI_SECTION, optName);
+	optValue = MEM_GetGothOpt(section, optName);
 	if (Hlp_StrCmp("", optValue)) {
-		MEM_SetGothOpt(INI_SECTION, optName, defaultVal);
+		MEM_SetGothOpt(section, optName, defaultVal);
 		optValue = defaultVal; 
 	};
 	
@@ -57,6 +77,14 @@ func string Ninja_Quickloot_GetOpt(var string optName, var string defaultVal) {
 	return optValue;
 };
 
+func string Ninja_Quickloot_GetOpt(var string optName, var string defaultVal) {
+	const string INI_SECTION = "NINJA_QUICKLOOT";
+	return Ninja_Quickloot_GetOptSec(INI_SECTION, optName, defaultVal);
+};
+func string Ninja_Quickloot_GetColorOpt(var string optName, var string defaultVal) {
+	const string INI_SECTION = "NINJA_QUICKLOOT_COLOR";
+	return Ninja_Quickloot_GetOptSec(INI_SECTION, optName, defaultVal);
+};
 func string Ninja_Quickloot_SetOpt(var string optName, var string optValue) {
 	const string INI_SECTION = "NINJA_QUICKLOOT";
 	var string concatText; concatText = "";
@@ -128,6 +156,17 @@ func void Ninja_Quickloot_Init_Options() {
 				_UpdatePlayerStatus_PrintFocusName_G2), 
 			8,
 			_Ninja_Quickloot_Set_AnimStart);
-		// Workaround for wrong "invalid pointer" check
 	};
+
+	_Ninja_Quickloot_Item_Money = Ninja_Quickloot_GetOpt("szItemMoney", "ITMI_GOLD");
+	PATCH_QUICKLOOT_INDEX_MONEY = MEM_FindParserSymbol(_Ninja_Quickloot_Item_Money);
+	_Ninja_Quickloot_Print_UseColors = STR_ToInt(Ninja_Quickloot_GetOpt("UseColors", "1"));
+
+	PATCH_QUICKLOOT_COLOR_NONE   = Ninja_Quickloot_ParseColor(Ninja_Quickloot_GetColorOpt("ItemOther" , "#FFFFFF")); // White
+	PATCH_QUICKLOOT_COLOR_RARE   = Ninja_Quickloot_ParseColor(Ninja_Quickloot_GetColorOpt("ItemRare"  , "#FFA500")); // Orange-ish
+	PATCH_QUICKLOOT_COLOR_GOLD   = Ninja_Quickloot_ParseColor(Ninja_Quickloot_GetColorOpt("ItemGold"  , "#FFFF00")); // Yellow
+	PATCH_QUICKLOOT_COLOR_COMMON = Ninja_Quickloot_ParseColor(Ninja_Quickloot_GetColorOpt("ItemCommon", "#C0C0C0")); // Silver 
+	PATCH_QUICKLOOT_COLOR_WEAPON = Ninja_Quickloot_ParseColor(Ninja_Quickloot_GetColorOpt("ItemWeapon", "#E3A5AA")); // Helleres Rosé
+	PATCH_QUICKLOOT_COLOR_QUEST  = Ninja_Quickloot_ParseColor(Ninja_Quickloot_GetColorOpt("ItemQuest" , "#009AFF")); // Light Blue
+	PATCH_QUICKLOOT_COLOR_FOOD   = Ninja_Quickloot_ParseColor(Ninja_Quickloot_GetColorOpt("ItemFood"  , "#04F804")); // Caparol
 };
