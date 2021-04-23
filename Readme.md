@@ -1,4 +1,4 @@
-# Quickloot
+# Kwickloot
 
 Ein Patch auf Basis von Ninja 2, welcher es in `Gothic 2 die Nacht des Raben` ermöglicht 
 mit der rechten Maustaste Gegenstände von Leichen, Bewusstlosen, offenen Truhen und dem Boden 
@@ -11,18 +11,18 @@ Glaubt nicht ihr könnt einfach in Häuser eindringen und ungestraft alles klaue
 
 ### Installation
 
-1. Quickloot.vdf herunterladen:  
+1. Kwickloot.vdf herunterladen:  
 https://github.com/Kirides/ninja-quickloot/releases/latest  
-_unter `Assets` die `Quickloot.vdf` anklicken zum herunterladen_
-1. Quickloot.vdf nach `...\Gothic\Data` - verschieben/kopieren
+_unter `Assets` die `Kwickloot.vdf` anklicken zum herunterladen_
+1. Kwickloot.vdf nach `...\Gothic\Data` - verschieben/kopieren
 1. Die aktuelle Version von `Ninja` installieren, falls nicht bereits erledigt:  
 https://github.com/szapp/Ninja/wiki/Installation-(DE)#wiki-wrapper  
 _Dies ist eine Verlinkung auf den offiziellen Wiki Artikel zu der Instatllation von Ninja_
 
-Nach dem ersten Start des Spiels werden in der `Gothic.ini` neue Einträge unter der Sektion `NINJA_QUICKLOOT` angelegt.  
+Nach dem ersten Start des Spiels werden in der `Gothic.ini` neue Einträge unter der Sektion `KWICKLOOT` angelegt.  
 
 ```ini
-[NINJA_QUICKLOOT]
+[KWICKLOOT]
 # Only displayed if UseAnimations is disabled
 Prefix=Erhalten:
 
@@ -41,10 +41,29 @@ AnimSpeed=700
 # if that font does not look good for you,
 # try one of the internal fonts (currently just DE)
 UsePatchFont=0
-Font=Ninja_QuickLoot_Font_DE.tga
+Font=Kwickloot_Font_DE.tga
+
+# Item instance name which is the currency
+szItemMoney=ITMI_GOLD
+
+# enable colors
+UseColors=1
+
+[KWICKLOOT_COLORS]
+# Everything else
+ItemOther=#FFFFFF
+# Item value >= 250
+ItemRare=#FFA500
+# Currency
+ItemGold=#FFFF00
+# Item value <= 10
+ItemCommon=#C0C0C0
+ItemWeapon=#E3A5AA
+ItemQuest=#009AFF
+ItemFood=#04F804
 ```
 
-Über das Spiel Menü im Bereich Steuerung kann für "Quickloot (Patch)" entsprechend die Taste(n) belegt werden.  
+Über das Spiel Menü im Bereich Steuerung kann für "(Patch) Kwickloot" entsprechend die Taste(n) belegt werden.  
 Die Standards für G1/G2 sind:
 - G2: `MAUS RECHTS`
 - G1: `V`
@@ -60,5 +79,5 @@ Die Standards für G1/G2 sind:
 
 ### Build Anleitung
 
-1. Quickloot.vm auf GothicVDFS.exe ziehen.
+1. Kwickloot.vm auf GothicVDFS.exe ziehen.
 1. Erstellen.
