@@ -1,7 +1,7 @@
 /*
  * Replace first occurrence of needle in haystack and replace it
  */
-func string Ninja_Quickloot_STR_ReplaceOnce(var string haystack, var string needle, var string replace) {
+func string Kwickloot_STR_ReplaceOnce(var string haystack, var string needle, var string replace) {
     var zString zSh; zSh = _^(_@s(haystack));
     var zString zSn; zSn = _^(_@s(needle));
     if (!zSh.len) || (!zSn.len) {
@@ -26,11 +26,11 @@ func string Ninja_Quickloot_STR_ReplaceOnce(var string haystack, var string need
 /*
  * Replace all occurrences of needle in haystack and replace them
  */
-func string Ninja_Quickloot_STR_ReplaceAll(var string haystack, var string needle, var string replace) {
+func string Kwickloot_STR_ReplaceAll(var string haystack, var string needle, var string replace) {
     var string before; before = "";
     while(!Hlp_StrCmp(haystack, before));
         before = haystack;
-        haystack = Ninja_Quickloot_STR_ReplaceOnce(before, needle, replace);
+        haystack = Kwickloot_STR_ReplaceOnce(before, needle, replace);
     end;
     return haystack;
 };
@@ -38,14 +38,14 @@ func string Ninja_Quickloot_STR_ReplaceAll(var string haystack, var string needl
 /*
  * Complement to STR_Prefix in Ikarus (from ScriptBin/strings.d)
  */
-func string Ninja_Quickloot_STR_Postfix(var string str, var int off) {
+func string Kwickloot_STR_Postfix(var string str, var int off) {
     return STR_SubStr(str, off, STR_Len(str)-off);
 };
 
 /*
  * Convert hexadecimal to decimal (big endian) (from ScriptBin/strings.d)
  */
-func int Ninja_Quickloot_hex2dec(var string hex) {
+func int Kwickloot_hex2dec(var string hex) {
     var zString zStr; zStr = _^(_@s(hex));
     if (!zStr.len) {
         return 0;
@@ -62,12 +62,12 @@ func int Ninja_Quickloot_hex2dec(var string hex) {
     };
 
     // Remove any spaces
-    hex = Ninja_Quickloot_STR_ReplaceAll(hex, " ", "");
+    hex = Kwickloot_STR_ReplaceAll(hex, " ", "");
 
     // Check length
     if (zStr.len > 8) {
         MEM_Error("hex2dec: Hexadecimal number to big. Considering the last 4 bytes only.");
-        hex = Ninja_Quickloot_STR_Postfix(hex, zStr.len-8);
+        hex = Kwickloot_STR_Postfix(hex, zStr.len-8);
     };
 
     // Iterate over all characters (from back to front)
@@ -79,7 +79,7 @@ func int Ninja_Quickloot_hex2dec(var string hex) {
     return dec;
 };
 
-func int Ninja_Quickloot_ParseColor(var string color) {
+func int Kwickloot_ParseColor(var string color) {
     color = STR_Upper(color);
 
     if      (Hlp_StrCmp(color, "AQUA")    )  { return COL_Aqua;    }
@@ -100,7 +100,7 @@ func int Ninja_Quickloot_ParseColor(var string color) {
     else if (Hlp_StrCmp(color, "YELLOW")  )  { return COL_Yellow;  };
     if (STR_Len(color) >= 6) {
         var int col;
-        col = Ninja_Quickloot_hex2dec(color);
+        col = Kwickloot_hex2dec(color);
         if (col != 0) {
             col = col | (255<<24); // Set alpha = 255
             return col;

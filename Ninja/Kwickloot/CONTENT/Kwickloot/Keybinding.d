@@ -2,7 +2,7 @@
  * Create menu item from script instance name
  * Source: https://github.com/szapp/Ninja/wiki/Inject-Changes
  */
-func int Ninja_Quickloot_CreateMenuItem(var string scriptName) { // Adjust name
+func int Kwickloot_CreateMenuItem(var string scriptName) { // Adjust name
     const int zCMenuItem__Create_G1 = 5052784; //0x4D1970
     const int zCMenuItem__Create_G2 = 5105600; //0x4DE7C0
 
@@ -25,7 +25,7 @@ func int Ninja_Quickloot_CreateMenuItem(var string scriptName) { // Adjust name
  * Copy essential properties from one to another menu entry
  * Source: https://github.com/szapp/Ninja/wiki/Inject-Changes
  */
-func void Ninja_Quickloot_CopyMenuItemProperties(var int dstPtr, var int srcPtr) {
+func void Kwickloot_CopyMenuItemProperties(var int dstPtr, var int srcPtr) {
     if (!dstPtr) || (!srcPtr) {
         return;
     };
@@ -46,7 +46,7 @@ func void Ninja_Quickloot_CopyMenuItemProperties(var int dstPtr, var int srcPtr)
  * Get maximum menu item height
  * Source: https://github.com/szapp/Ninja/wiki/Inject-Changes
  */
-func int Ninja_Quickloot_MenuItemGetHeight(var int itmPtr) { // Adjust name
+func int Kwickloot_MenuItemGetHeight(var int itmPtr) { // Adjust name
     if (!itmPtr) {
         return 0;
     };
@@ -82,7 +82,7 @@ func int Ninja_Quickloot_MenuItemGetHeight(var int itmPtr) { // Adjust name
  * Insert value into array at specific position
  * Source: https://github.com/szapp/Ninja/wiki/Inject-Changes
  */
-func void Ninja_Quickloot_ArrayInsertAtPos(var int zCArray_ptr,
+func void Kwickloot_ArrayInsertAtPos(var int zCArray_ptr,
                                              var int pos,
                                              var int value) { // Adjust name
     const int zCArray__InsertAtPos_G1 = 6267728; //0x5FA350
@@ -105,7 +105,7 @@ func void Ninja_Quickloot_ArrayInsertAtPos(var int zCArray_ptr,
  * Guess localization (0 = EN, 1 = DE, 2 = PL, 3 = RU)
  * Source: https://github.com/szapp/Ninja/wiki/Inject-Changes#localization
  */
-func int Ninja_Quickloot_GuessLocalization() { // Adjust the name!
+func int Kwickloot_GuessLocalization() { // Adjust the name!
 	MEM_InitAll();
     var int pan; pan = MEM_GetSymbol("MOBNAME_PAN");
     if (pan) {
@@ -122,17 +122,17 @@ func int Ninja_Quickloot_GuessLocalization() { // Adjust the name!
     return 0; // Otherwise EN
 };
 
-func void Ninja_Quickloot_LocalizeKeyBinding(var int menuKey, var int menuInp) {
+func void Kwickloot_LocalizeKeyBinding(var int menuKey, var int menuInp) {
     var zCMenuItem itmKey; itmKey = _^(menuKey);
     var zCMenuItem itmInp; itmInp = _^(menuInp);
     
-    if (PATCH_QUICKLOOT_LOCALE == 0 /* EN */) {
+    if (Kwickloot_LOCALE == 0 /* EN */) {
         itmKey.m_parText[1] = "Press DEL to remove and ENTER to define a key.";
         itmInp.m_parText[1] = "Press the desired key.";
-    } else if (PATCH_QUICKLOOT_LOCALE == 2 /* PL */) {
+    } else if (Kwickloot_LOCALE == 2 /* PL */) {
         itmKey.m_parText[1] = "DEL - usuwa, ENTER - przypisuje klawisz.";
         itmInp.m_parText[1] = "Naciњnij ї№dany klawisz.";
-    } else if (PATCH_QUICKLOOT_LOCALE == 3 /* RU */) {
+    } else if (Kwickloot_LOCALE == 3 /* RU */) {
         itmKey.m_parText[1] = "Кнопка удалить Удалить и вернуться к определению";
         itmInp.m_parText[1] = "Нажмите нужную клавишу.";
     };
@@ -142,13 +142,13 @@ func void Ninja_Quickloot_LocalizeKeyBinding(var int menuKey, var int menuInp) {
  * Menu initialization function called by Ninja every time a menu is opened
  * Source: https://github.com/szapp/Ninja/wiki/Inject-Changes
  */
-func void Ninja_Quickloot_Menu(var int menuPtr) { // Adjust name
+func void Ninja_Kwickloot_Menu(var int menuPtr) { // Adjust name
     // Initialize Ikarus
     MEM_InitAll();
 	const int once = 1;
 	if (once) {
-        PATCH_QUICKLOOT_LOCALE = Ninja_Quickloot_GuessLocalization();
-		Ninja_Quickloot_Init_Options();
+        Kwickloot_LOCALE = Kwickloot_GuessLocalization();
+		Kwickloot_Init_Options();
 		once = 0;
 	};
 
@@ -159,8 +159,8 @@ func void Ninja_Quickloot_Menu(var int menuPtr) { // Adjust name
     // Modify each menu by its name
     if (Hlp_StrCmp(menu.name, "MENU_OPT_CONTROLS")) {
         // New menu instances (description and key binding)
-        var string itm1Str; itm1Str = "MENUITEM_KEY_NINJA_QUICKLOOT";
-        var string itm2Str; itm2Str = "MENUITEM_INP_NINJA_QUICKLOOT";
+        var string itm1Str; itm1Str = "MENUITEM_KEY_KWICKLOOT";
+        var string itm2Str; itm2Str = "MENUITEM_INP_KWICKLOOT";
 
         // Get new items
         var int itm1; itm1 = MEM_GetMenuItemByString(itm1Str);
@@ -169,13 +169,13 @@ func void Ninja_Quickloot_Menu(var int menuPtr) { // Adjust name
         // If the new ones do not exist yet, create them the first time
         if (!itm1) {
             var zCMenuItem itm;
-            itm1 = Ninja_Quickloot_CreateMenuItem(itm1Str);
-            itm2 = Ninja_Quickloot_CreateMenuItem(itm2Str);
-            Ninja_Quickloot_LocalizeKeyBinding(itm1, itm2);
+            itm1 = Kwickloot_CreateMenuItem(itm1Str);
+            itm2 = Kwickloot_CreateMenuItem(itm2Str);
+            Kwickloot_LocalizeKeyBinding(itm1, itm2);
 
             // Copy properties of first key binding entry (left column)
             var int itmF_left; itmF_left = MEM_ArrayRead(items, 1);
-            Ninja_Quickloot_CopyMenuItemProperties(itm1, itmF_left);
+            Kwickloot_CopyMenuItemProperties(itm1, itmF_left);
             itm = _^(itmF_left);
             var int ypos_l; ypos_l = itm.m_parPosY;
 
@@ -184,9 +184,9 @@ func void Ninja_Quickloot_Menu(var int menuPtr) { // Adjust name
             rightname = STR_SubStr(rightname, 4, STR_Len(rightname)-4);
             var int itmF_right; itmF_right = MEM_GetMenuItemByString(rightname);
             if (itmF_right) {
-                Ninja_Quickloot_CopyMenuItemProperties(itm2, itmF_right);
+                Kwickloot_CopyMenuItemProperties(itm2, itmF_right);
             } else { // If not found, copy from left column
-                Ninja_Quickloot_CopyMenuItemProperties(itm2, itmF_left);
+                Kwickloot_CopyMenuItemProperties(itm2, itmF_left);
                 itm = _^(itm2);
                 itm.m_parPosX += 2700; // Default x position
             };
@@ -211,8 +211,8 @@ func void Ninja_Quickloot_Menu(var int menuPtr) { // Adjust name
             itm.m_parPosY = y + (ypos_r - ypos_l); // Maintain possible difference
 
             // Get maximum height of new entries
-            var int ystep; ystep = Ninja_Quickloot_MenuItemGetHeight(itm1);
-            var int ystep_r; ystep_r = Ninja_Quickloot_MenuItemGetHeight(itm2);
+            var int ystep; ystep = Kwickloot_MenuItemGetHeight(itm1);
+            var int ystep_r; ystep_r = Kwickloot_MenuItemGetHeight(itm2);
             if (ystep_r > ystep) {
                 ystep = ystep_r;
             };
@@ -225,7 +225,7 @@ func void Ninja_Quickloot_Menu(var int menuPtr) { // Adjust name
         };
 
         // Add new entries at the correct position
-        Ninja_Quickloot_ArrayInsertAtPos(items, index, itm1);
-        Ninja_Quickloot_ArrayInsertAtPos(items, index+1, itm2);
+        Kwickloot_ArrayInsertAtPos(items, index, itm1);
+        Kwickloot_ArrayInsertAtPos(items, index+1, itm2);
     };
 };

@@ -1,9 +1,9 @@
 [BEGINVDF]
 Comment=Rightclick to Quickloot! (v2.0.0-alpha, G1+G2)
 BaseDir=.\
-VDFName=.\Quickloot.vdf
+VDFName=.\Kwickloot.vdf
 [FILES]
-Ninja\Quickloot\* -r
+Ninja\Kwickloot\* -r
 _Work\* -r
 [EXCLUDE]
 *_DEV.*

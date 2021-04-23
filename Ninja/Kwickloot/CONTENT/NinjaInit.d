@@ -1,7 +1,7 @@
 
 /// Init-function called by Ninja
-func void Ninja_Quickloot_Init() {
+func void Ninja_Kwickloot_Init() {
 	// Initialize Ikarus
 	MEM_InitAll();
-	Ninja_Quickloot_Init_Internal();
+	Kwickloot_Init_Internal();
 };
