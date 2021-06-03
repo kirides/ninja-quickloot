@@ -1,4 +1,4 @@
-const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9.4"; 
+const string NINJA_QUICKLOOT_VERSION = "Quickloot v1.9.5"; 
 
 FUNC VOID _Ninja_Quickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
     var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
@@ -129,7 +129,7 @@ func void _Ninja_Quickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var i
 	};
 	// Sends perception to all surrounding NPCs
 	// this creates a zSPY warning about invalid "victim" but that's fine!
-	Npc_SendPassivePerc(taker, perc, taker, NULL);
+	Npc_SendPassivePerc(taker, perc, NULL, taker);
 	item = MEM_CpyInst(itmOld);
 };
 
