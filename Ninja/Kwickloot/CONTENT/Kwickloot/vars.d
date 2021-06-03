@@ -166,7 +166,7 @@ func void Kwickloot_Init_Options() {
 	Kwickloot_COLOR_RARE   = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemRare"  , "#FFA500")); // Orange-ish
 	Kwickloot_COLOR_GOLD   = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemGold"  , "#FFFF00")); // Yellow
 	Kwickloot_COLOR_COMMON = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemCommon", "#C0C0C0")); // Silver 
-	Kwickloot_COLOR_WEAPON = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemWeapon", "#E3A5AA")); // Helleres Rosé
-	Kwickloot_COLOR_QUEST  = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemQuest" , "#009AFF")); // Light Blue
+	Kwickloot_COLOR_WEAPON = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemWeapon", "#009AFF")); // Light Blue
+	Kwickloot_COLOR_QUEST  = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemQuest" , "#E3A5AA")); // Helleres Rosé
 	Kwickloot_COLOR_FOOD   = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemFood"  , "#04F804")); // Caparol
 };

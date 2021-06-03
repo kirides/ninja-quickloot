@@ -98,8 +98,6 @@ func void _Kwickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var int per
 	if (Hlp_IsValidItem(item)) { itmOld = MEM_CpyInst(item); }
 	else                       { itmOld = MEM_NullToInst();  };
 
-	const int _PERC_ASSESSTHEFT  = -1;
-	const int _PERC_ASSESSUSEMOB = -1;
 	if (perc == Kwickloot_PERC_ASSESSTHEFT) {
 		// Set global ITEM variable. This is for Npc_SendPassivePerc to not report errors.
 		item = MEM_PtrToInst(vobPtr);
@@ -113,7 +111,7 @@ func void _Kwickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var int per
 	};
 	// Sends perception to all surrounding NPCs
 	// this creates a zSPY warning about invalid "victim" but that's fine!
-	Npc_SendPassivePerc(taker, perc, taker, NULL);
+	Npc_SendPassivePerc(taker, perc, NULL, taker);
 	item = MEM_CpyInst(itmOld);
 };
 
@@ -133,36 +131,29 @@ func int _Kwickloot_ColorForRarity(var int rarity) {
 
 func void _Kwickloot_PrintItem(var string name, var int amount, var int rarity) {
 	var int color; color = _Kwickloot_ColorForRarity(rarity);
+	var string text; text = name;
+
 	if (amount > 1) {
-		_Kwickloot_PrintLootExt(
-			ConcatStrings(
-				_Kwickloot_Received_Prefix, 
-				ConcatStrings(
+		text = ConcatStrings(
 					ConcatStrings(IntToString(amount) , "x "),
 					name
-				)
-			), _Kwickloot_Print_UseAnimation, color
-		);
-	} else {
-		_Kwickloot_PrintLootExt(
-			ConcatStrings(_Kwickloot_Received_Prefix, name),
-			_Kwickloot_Print_UseAnimation, color
-		);
+				);
 	};
+	_Kwickloot_PrintLootExt(
+		ConcatStrings(_Kwickloot_Received_Prefix, text),
+		_Kwickloot_Print_UseAnimation, color
+	);
 };
 
 func void _Kwickloot_World_DisableVob(var int vobPtr) {
+	const int oCWorld__DisableVob_G1 = 7172688; // 006d7250
 	const int oCWorld__DisableVob_G2 = 7865440; // 00780460
-	if (MEMINT_SwitchG1G2(1, 0)) {
-		// G1 is not supported for this.
-		return;
-	};
 	var int worldPtr; worldPtr = _@(MEM_World);
 
 	const int call = 0;
     if (CALL_Begin(call)) {
         CALL_PtrParam(_@(vobPtr));
-        CALL__thiscall(_@(worldPtr), oCWorld__DisableVob_G2);
+        CALL__thiscall(_@(worldPtr), MEMINT_SwitchG1G2(oCWorld__DisableVob_G1, oCWorld__DisableVob_G2));
 
         call = CALL_End();
     };
@@ -223,7 +214,10 @@ func void _Kwickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
 };
 
 func int _Kwickloot_NpcHasValidBodyState(var oCNPC npc) {
+	const int _BS_UNCONSCIOUS = 22;
 	if (npc.interactMob) { return 0; };
+	// const int bs = 0; bs = npc.bitfield[4] & oCNpc_bitfield4_bodyState;
+	// if (npc.bitfield[4] & _BS_UNCONSCIOUS) { return 0; };
 
 	return (((npc.bitfield[4] & BS_STAND) > 0)
 		|| ((npc.bitfield[4] & BS_WALK) > 0)
@@ -511,7 +505,6 @@ func void _Kwickloot_ClearRuneInv(var C_Npc targetNpc) {
 		MEM_PushInstParam(targetNpc); // Push targetNpc for function parameter.
 		MEM_CallByID(fnId);
 	};
-	
 };
 
 func int _Kwickloot__Npc_GetWeaponMode(var C_NPC slf) {
@@ -531,18 +524,18 @@ func int _Kwickloot__Npc_GetWeaponMode(var C_NPC slf) {
 func void _Kwickloot_ToggleRMBCancel(var int on) {
 	const int CGameManager__HandleEvent_CaseRMB_G2 = 4370169;
 
-	const int once = 1;
-	if (MEMINT_SwitchG1G2(0, 1)) {
-		if (once) {
-			MemoryProtectionOverride(CGameManager__HandleEvent_CaseRMB_G2, 4);
-			once = 0;
-		};
+	if (GOTHIC_BASE_VERSION != 2) { return; };
 
-		if (on){
-			MEM_WriteInt(CGameManager__HandleEvent_CaseRMB_G2, 525);
-		} else {
-			MEM_WriteInt(CGameManager__HandleEvent_CaseRMB_G2, 999999);
-		};
+	const int once = 1;
+	if (once) {
+		MemoryProtectionOverride(CGameManager__HandleEvent_CaseRMB_G2, 4);
+		once = 0;
+	};
+
+	if (on){
+		MEM_WriteInt(CGameManager__HandleEvent_CaseRMB_G2, 525);
+	} else {
+		MEM_WriteInt(CGameManager__HandleEvent_CaseRMB_G2, 999999);
 	};
 };
 func int _Kwickloot_IsInState(var C_NPC npc, var int stateFn) {

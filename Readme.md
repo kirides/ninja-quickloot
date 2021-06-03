@@ -50,7 +50,7 @@ szItemMoney=ITMI_GOLD
 UseColors=1
 
 [KWICKLOOT_COLORS]
-# Everything else
+# Everything else white
 ItemOther=#FFFFFF
 # Item value >= 250
 ItemRare=#FFA500
@@ -58,8 +58,8 @@ ItemRare=#FFA500
 ItemGold=#FFFF00
 # Item value <= 10
 ItemCommon=#C0C0C0
-ItemWeapon=#E3A5AA
-ItemQuest=#009AFF
+ItemWeapon=#009AFF
+ItemQuest=#E3A5AA
 ItemFood=#04F804
 ```
 
