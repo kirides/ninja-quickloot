@@ -160,7 +160,7 @@ func void Kwickloot_Init_Options() {
 
 	_Kwickloot_Item_Money = Kwickloot_GetOpt("szItemMoney", "ITMI_GOLD");
 	Kwickloot_INDEX_MONEY = MEM_FindParserSymbol(_Kwickloot_Item_Money);
-	_Kwickloot_Print_UseColors = STR_ToInt(Kwickloot_GetOpt("UseColors", "1"));
+	_Kwickloot_Print_UseColors = STR_ToInt(Kwickloot_GetOpt("UseColors", "0"));
 
 	Kwickloot_COLOR_NONE   = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemOther" , "#FFFFFF")); // White
 	Kwickloot_COLOR_RARE   = Kwickloot_ParseColor(Kwickloot_GetColorOpt("ItemRare"  , "#FFA500")); // Orange-ish
