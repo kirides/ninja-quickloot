@@ -1,4 +1,4 @@
-const string KWICKLOOT_VERSION = "Kwickloot v2.0.0-alpha"; 
+const string KWICKLOOT_VERSION = "Kwickloot v2.0.0-alpha-2"; 
 
 // Used to calculate the "Top"-Offset for a Print
 const int _Kwickloot_Print_Count = 0;

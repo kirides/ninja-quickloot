@@ -1,19 +1,4 @@
 
-FUNC VOID _Kwickloot_NPC_CollectFocusVob (var C_NPC slfInstance, var int force) {
-    var int npcPtr; npcPtr = MEM_InstToPtr(slfInstance);
-	const int oCNpc__CollectFocusVob_G1 = 6884720; // 0x690D70
-	const int oCNpc__CollectFocusVob_G2 = 7551504; // 0x733A10
-    const int call = 0;
-    if (CALL_Begin(call)) {
-		if (GOTHIC_BASE_VERSION == 2) {
-        	CALL_IntParam (_@(force));
-		};
-        CALL__thiscall(_@(npcPtr), MEMINT_SwitchG1G2 (oCNpc__CollectFocusVob_G1, oCNpc__CollectFocusVob_G2));
-
-        call = CALL_End();
-    };
-};
-
 func void _Kwickloot_Set_AnimStart() {
 	_Kwickloot_Set_AnimStart_Y = MEMINT_SwitchG1G2(ESI, EBX);
 	_Kwickloot_Set_AnimStart_X = MEMINT_SwitchG1G2(EDI, EAX);
@@ -72,22 +57,6 @@ func void _Kwickloot_PrintLootExt(var string text, var int anim, var int color) 
 	_Kwickloot_Print_Count_Limit_Current +=1;
 };
 
-func void _Kwickloot_CNpc_SetFocusVob(var C_Npc npc, var int vobPtr) {
-	const int oCNpc__SetFocusVob_G1 = 6881136; // 0068FF70
-	const int oCNpc__SetFocusVob_G2 = 7547744; // 00732B60
-    var int npcPtr; npcPtr = MEM_InstToPtr(npc);
-
-    const int call = 0;
-    if (CALL_Begin(call)) {
-        CALL_PtrParam(_@(vobPtr));
-        CALL__thiscall(_@(npcPtr), MEMINT_SwitchG1G2 (oCNpc__SetFocusVob_G1, oCNpc__SetFocusVob_G2));
-
-        call = CALL_End();
-    };
-};
-
-
-
 func void _Kwickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var int perc) {
 	// Not supported in Gothic 1.
 	if (GOTHIC_BASE_VERSION != 2) { return; };
@@ -107,7 +76,10 @@ func void _Kwickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var int per
 		if (!Hlp_Is_oCMobInter(vobPtr)) {
 			return;
 		};
-		oTaker.rbt_obstVob = vobPtr;
+		const int oldInteractMob = 0; oldInteractMob = oTaker.interactMob;
+		if (final()) { oTaker.interactMob = oldInteractMob; };
+		
+		oTaker.interactMob = vobPtr;
 	};
 	// Sends perception to all surrounding NPCs
 	// this creates a zSPY warning about invalid "victim" but that's fine!
@@ -134,29 +106,13 @@ func void _Kwickloot_PrintItem(var string name, var int amount, var int rarity) 
 	var string text; text = name;
 
 	if (amount > 1) {
-		text = ConcatStrings(
-					ConcatStrings(IntToString(amount) , "x "),
-					name
-				);
+		text = ConcatStrings(IntToString(amount) , "x ");
+		text = ConcatStrings(text, name);
 	};
 	_Kwickloot_PrintLootExt(
 		ConcatStrings(_Kwickloot_Received_Prefix, text),
 		_Kwickloot_Print_UseAnimation, color
 	);
-};
-
-func void _Kwickloot_World_DisableVob(var int vobPtr) {
-	const int oCWorld__DisableVob_G1 = 7172688; // 006d7250
-	const int oCWorld__DisableVob_G2 = 7865440; // 00780460
-	var int worldPtr; worldPtr = _@(MEM_World);
-
-	const int call = 0;
-    if (CALL_Begin(call)) {
-        CALL_PtrParam(_@(vobPtr));
-        CALL__thiscall(_@(worldPtr), MEMINT_SwitchG1G2(oCWorld__DisableVob_G1, oCWorld__DisableVob_G2));
-
-        call = CALL_End();
-    };
 };
 
 func int _Kwickloot_RarityForItem(var C_ITEM itm) {
@@ -191,26 +147,33 @@ func void _Kwickloot_TakeOrStealItem(var C_NPC taker, var int itemPtr) {
     if (!Hlp_IsValidItem(targetItem)) { return; };
     var int itemAmount; itemAmount = targetItem.amount;
 
-    var string itemName; itemName = targetItem.description;
-    if (Hlp_StrCmp(itemName, "")) {
-        itemName = targetItem.name;
-    };
     var int itmID; itmID = Hlp_GetInstanceID(targetItem);
 	var C_ITEM itm; itm = MEM_PtrToInst(itemPtr);
 	var int itemRarity; itemRarity = _Kwickloot_RarityForItem(itm);
-	// MEM_Info(ConcatStrings("Rarity for ", ConcatStrings(itm.description, ConcatStrings(": ", IntToString(itemRarity)))));
 
-    _Kwickloot_PerceiveAction(taker, itemPtr, Kwickloot_PERC_ASSESSTHEFT);
+	var string itemName; itemName = targetItem.description;
+    if (Hlp_StrCmp(itemName, "")) {
+        itemName = targetItem.name;
+    };
 
-    // Take the item without animation.
-    CreateInvItems(taker, itmID, itemAmount);
+	// oCNpc::DoTakeVob, without putting Torch in hand
+	if (Hlp_StrCmp(targetItem._zCObject_objectName, "ITLSTORCHBURNING")) {
+		if (GOTHIC_BASE_VERSION == 1) {
+			// DoTakeVob does the same in G2!
+			_Kwickloot_World_DisableVob(itemPtr);
+		};
+		const int ADR_DoTakeVob_CheckForTorch_G1 = 6950370; // 006a0de2
+		const int ADR_DoTakeVob_CheckForTorch_G2 = 7621294; // 00744aae
+		const int addr = 0; addr = MEMINT_SwitchG1G2(ADR_DoTakeVob_CheckForTorch_G1, ADR_DoTakeVob_CheckForTorch_G2);
+		MemoryProtectionOverride(addr, 1);
+		MEM_WriteByte(addr, 116); // 0x74 // replace with JE
+		_Kwickloot_oCNpc_DoTakeVob(_@(taker), itemPtr);
+		MEM_WriteByte(addr, 117); // 0x75 // restore JNZ
+	} else {
+		_Kwickloot_oCNpc_DoTakeVob(_@(taker), itemPtr);
+	};
 
-	_Kwickloot_World_DisableVob(itemPtr);
-    Wld_RemoveItem(targetItem);
-
-    // Remove the Item from focus.
-    _Kwickloot_CNpc_SetFocusVob(taker, 0);
-    _Kwickloot_PrintItem(itemName, itemAmount, itemRarity);		
+    _Kwickloot_PrintItem(itemName, itemAmount, itemRarity);
 };
 
 func int _Kwickloot_NpcHasValidBodyState(var oCNPC npc) {
@@ -350,7 +313,11 @@ func int _Kwickloot_Container_ConditionFunc(var oCMobContainer container) {
 };
 
 func void _Kwickloot_Container_OnState(var string state, var int stateNo) {
-	var int symId; symId = MEM_FindParserSymbol(ConcatStrings(state, ConcatStrings("_S", IntToString(stateNo))));
+	var string stateName; stateName = state;
+	stateName = ConcatStrings(stateName, "_S");
+	stateName = ConcatStrings(stateName, IntToString(stateNo));
+	
+	var int symId; symId = MEM_FindParserSymbol(stateName);
 	if (symId != -1) {
 		var C_NPC oldSlf; oldSlf = MEM_CpyInst(self);
 		self = MEM_CpyInst(hero);
@@ -391,18 +358,6 @@ func int _Kwickloot_KnowsPicklocking() {
 	return 1;
 };
 
-func void _Kwickloot_MobRemoveItems_RemoveItem(var int pThis, var int itmAddress) {
-	const int __oCMobContainerRemoveAddress_G1 = 6831792; //0x00683eb0
-	const int __oCMobContainerRemoveAddress_G2 = 7495664; //0x00725FF0
-
-	const int call = 0;
-    if (CALL_Begin(call)) {
-		CALL_IntParam (_@(itmAddress));
-        CALL__thiscall(_@(pThis), MEMINT_SwitchG1G2 (__oCMobContainerRemoveAddress_G1, __oCMobContainerRemoveAddress_G2));
-
-        call = CALL_End();
-    };
-};
 func void _Kwickloot_Mob_RemoveAllItems(var int containerAddress) {
 	var oCMobContainer container; container = _^(containerAddress);
 	var int ptr; ptr = container.containList_next;
@@ -505,20 +460,6 @@ func void _Kwickloot_ClearRuneInv(var C_Npc targetNpc) {
 		MEM_PushInstParam(targetNpc); // Push targetNpc for function parameter.
 		MEM_CallByID(fnId);
 	};
-};
-
-func int _Kwickloot__Npc_GetWeaponMode(var C_NPC slf) {
-	var int npcPtr; npcPtr = MEM_InstToPtr(slf);
-	const int oCNpc___GetWeaponMode_G1 = 6903840; // 0x690D70
-	const int oCNpc___GetWeaponMode_G2 = 7572544; // 0x738C40
-    const int call = 0;
-	var int retVal; retVal = 0;
-    if (CALL_Begin(call)) {
-		CALL_PutRetValTo(_@(retVal));
-        CALL__thiscall(_@(npcPtr), MEMINT_SwitchG1G2 (oCNpc___GetWeaponMode_G1, oCNpc___GetWeaponMode_G2));
-        call = CALL_End();
-    };
-	return retVal;
 };
 
 func void _Kwickloot_ToggleRMBCancel(var int on) {

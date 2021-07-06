@@ -4,5 +4,6 @@ LeGo
 Content\Kwickloot\strings.d
 Content\Kwickloot\vars.d
 Content\Kwickloot\keybinding.d
+Content\Kwickloot\EngineFuncs.D
 Content\Kwickloot\INIT.D
 Content\NinjaInit.d
