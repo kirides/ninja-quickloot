@@ -5,5 +5,7 @@ Content\Kwickloot\strings.d
 Content\Kwickloot\vars.d
 Content\Kwickloot\keybinding.d
 Content\Kwickloot\EngineFuncs.d
+Content\Kwickloot\ClassDefs_G2A.d
+Content\Kwickloot\CheckInheritance.d
 Content\Kwickloot\INIT.D
 Content\NinjaInit.d

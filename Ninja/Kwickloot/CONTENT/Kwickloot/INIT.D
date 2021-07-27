@@ -73,7 +73,7 @@ func void _Kwickloot_PerceiveAction(var C_NPC taker, var int vobPtr, var int per
 	};
 	if (perc == Kwickloot_PERC_ASSESSUSEMOB) {
 		// Set obstVob variable. NPC will react to action with this.
-		if (!Hlp_Is_oCMobInter(vobPtr)) {
+		if (!Kwickloot_Hlp_Is_oCMobInter(vobPtr)) {
 			return;
 		};
 		const int oldInteractMob = 0; oldInteractMob = oTaker.interactMob;
@@ -383,7 +383,7 @@ func void _Kwickloot_LootContainer(var C_NPC taker, var int containerPtr) {
 		return;
 	};
 
-	if (Hlp_Is_oCMobLockable(containerPtr)) {
+	if (Kwickloot_Hlp_Is_oCMobLockable(containerPtr)) {
 		var oCMobLockable lockable; lockable = MEM_PtrToInst(containerPtr);
 		const int _oCMobLockable_bitfield_autoOpen = ((1 <<  1) - 1) << 1;
 
@@ -541,7 +541,7 @@ func void _Kwickloot_Loot() {
 	var oCNpc her; her = MEM_CpyInst(hero);
 	if (!_Kwickloot_NpcHasValidBodyState(her)) { her = MEM_NullToInst(); return ; };
 
-	if (Hlp_Is_oCNpc(her.focus_vob)) {
+	if (Kwickloot_Hlp_Is_oCNpc(her.focus_vob)) {
 		var C_Npc targetNpc; targetNpc = MEM_PtrToInst(her.focus_vob);
 
 		// Keine lebenden NPC ausrauben! Ausser wenn sie am Boden liegen.
@@ -556,13 +556,13 @@ func void _Kwickloot_Loot() {
 			};
 		};
 		targetNpc = MEM_NullToInst();
-	} else if (Hlp_Is_oCItem(her.focus_vob)) {
+	} else if (Kwickloot_Hlp_Is_oCItem(her.focus_vob)) {
 		_Kwickloot_TakeOrStealItem(hero, her.focus_vob);
 		_Kwickloot_NPC_CollectFocusVob(hero, /* force: */ 1);
 		_Kwickloot_ToggleRMBCancel(FALSE);
 		resetRMBoverride = RMB_OVERRIDE_TIMESPAN;
 		delay = 80;
-	} else if (Hlp_Is_oCMobContainer(her.focus_vob)) {
+	} else if (Kwickloot_Hlp_Is_oCMobContainer(her.focus_vob)) {
 		_Kwickloot_LootContainer(hero, her.focus_vob);
 		_Kwickloot_ToggleRMBCancel(FALSE);
 		resetRMBoverride = RMB_OVERRIDE_TIMESPAN;
