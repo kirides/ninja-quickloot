@@ -158,7 +158,13 @@ func void Kwickloot_Init_Options() {
 			_Kwickloot_Set_AnimStart);
 	};
 
-	_Kwickloot_Item_Money = Kwickloot_GetOpt("szItemMoney", "ITMI_GOLD");
+	// automatically find the current currency. Is required for G2A, don't know G1
+	var int currency; currency = MEM_GetSymbol("TRADE_CURRENCY_INSTANCE");
+    if (currency) {
+        var zCPar_Symbol currencySymb; currencySymb = _^(currency);
+        _Kwickloot_Item_Money = MEM_ReadString(currencySymb.content);
+	};
+	_Kwickloot_Item_Money = Kwickloot_GetOpt("szItemMoney", _Kwickloot_Item_Money);
 	Kwickloot_INDEX_MONEY = MEM_FindParserSymbol(_Kwickloot_Item_Money);
 	_Kwickloot_Print_UseColors = STR_ToInt(Kwickloot_GetOpt("UseColors", "0"));
 
